@@ -20,7 +20,10 @@ from detech.freebsd.power import (
     build_power_command,
     format_waybar_json,
     get_battery_status,
+    get_memory_status,
+    get_system_load_status,
     get_thermal_status,
+    get_zfs_status,
 )
 from detech.generators.hyprland import list_hyprlock_layouts
 from detech.generators.rofi import list_rofi_layouts
@@ -112,8 +115,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_bl.add_argument("step", nargs="?", type=int, default=5)
     p_bl.add_argument("--json", action="store_true")
 
-    p_pow = bsd_sub.add_parser("power", help="FreeBSD ACPI battery, thermal, and session power controls")
-    p_pow.add_argument("action", choices=["battery", "thermal", "lock", "suspend", "reboot", "poweroff", "logout"])
+    p_pow = bsd_sub.add_parser("power", help="FreeBSD ACPI battery, thermal, telemetry, and session power controls")
+    p_pow.add_argument(
+        "action",
+        choices=["battery", "thermal", "load", "memory", "zfs", "lock", "suspend", "reboot", "poweroff", "logout"],
+    )
     p_pow.add_argument("--json", action="store_true")
 
     p_pkg = bsd_sub.add_parser("pkg", help="FreeBSD pkg repository queries")
@@ -201,13 +207,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"{item['name']:<20} — {item.get('display_name', '')}")
         elif cat == "waybar":
             for item in list_waybar_layouts():
-                print(f"{item['id']:<20} ({item.get('position', 'top'):<6}) — {item.get('name', '')}")
+                print(
+                    f"{item['id']:<20} ({item.get('position', 'top'):<6} | {item.get('style_variant', ''):<16}) — {item.get('name', '')}"
+                )
         elif cat == "rofi":
             for item in list_rofi_layouts():
-                print(f"{item['id']:<22} — {item.get('name', '')}")
+                grid = f"{item.get('columns', 1)}x{item.get('lines', 5)}"
+                print(f"{item['id']:<22} ({grid:<5} | {item.get('style_variant', ''):<13}) — {item.get('name', '')}")
         elif cat == "starship":
             for item in list_starship_prompts():
-                print(f"{item['id']:<20} — {item.get('name', '')}")
+                print(f"{item['id']:<20} — {item.get('name', ''):<42}  {item.get('preview', '')}")
         elif cat == "hyprlock":
             for item in list_hyprlock_layouts():
                 print(f"{item['id']:<20} — {item.get('name', '')}")
@@ -314,6 +323,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             if args.action == "thermal":
                 therm = get_thermal_status(fbsd.get("power", {}).get("thermal_sysctl", "hw.acpi.thermal.tz0.temperature"))
                 print(format_waybar_json(therm) if args.json else therm["text"])
+                return 0
+            if args.action == "load":
+                load_info = get_system_load_status()
+                print(format_waybar_json(load_info) if args.json else load_info["text"])
+                return 0
+            if args.action == "memory":
+                mem_info = get_memory_status()
+                print(format_waybar_json(mem_info) if args.json else mem_info["text"])
+                return 0
+            if args.action == "zfs":
+                zfs_info = get_zfs_status()
+                print(format_waybar_json(zfs_info) if args.json else zfs_info["text"])
                 return 0
             cmd = build_power_command(args.action, privilege_cmd=fbsd.get("privilege_cmd", "doas"))
             subprocess.run(cmd, check=False)

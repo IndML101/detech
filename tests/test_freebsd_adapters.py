@@ -5,7 +5,12 @@ from __future__ import annotations
 from detech.freebsd.audio import build_audio_command, parse_mixer_output
 from detech.freebsd.backlight import build_backlight_command, parse_backlight_output
 from detech.freebsd.pkg_manager import build_pkg_terminal_command, parse_pkg_query_output
-from detech.freebsd.power import build_power_command
+from detech.freebsd.power import (
+    build_power_command,
+    get_memory_status,
+    get_system_load_status,
+    get_zfs_status,
+)
 
 
 def test_freebsd_audio_commands_and_parser() -> None:
@@ -39,3 +44,17 @@ def test_freebsd_power_and_pkg_commands() -> None:
     term_cmd = build_pkg_terminal_command("install", "neovim", privilege_cmd="doas", terminal="kitty")
     assert term_cmd[:3] == ["kitty", "--title", "DETech Package Installer"]
     assert "doas pkg install -y neovim" in term_cmd[-1]
+
+
+def test_freebsd_telemetry_status_helpers() -> None:
+    load_info = get_system_load_status()
+    assert "load_1m" in load_info
+    assert "text" in load_info
+
+    mem_info = get_memory_status()
+    assert 0 <= mem_info["percent"] <= 100
+    assert "FreeBSD Memory" in mem_info["tooltip"]
+
+    zfs_info = get_zfs_status()
+    assert "pool" in zfs_info
+    assert "health" in zfs_info

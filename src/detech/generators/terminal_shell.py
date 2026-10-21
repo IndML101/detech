@@ -29,13 +29,143 @@ def get_starship_prompt(preset_id: str) -> dict[str, Any]:
     raise ValueError(f"Starship prompt preset not found: {preset_id}")
 
 
+def render_starship_toml(spec: dict[str, Any], palette: dict[str, str]) -> str:
+    """Render a complete `starship.toml` configuration for the given preset blueprint and palette."""
+    preset_id = spec.get("id", "tokyo-pill")
+    add_nl = "true" if spec.get("add_newline", True) else "false"
+    fmt = spec.get("format", "$directory$git_branch$character").replace("\n", "\\n")
+    rfmt = spec.get("right_format", "")
+
+    dir_style = spec.get("directory_style", "bold fg:accent")
+    dir_format = spec.get("directory_format", "[$path]($style)[$read_only]($read_only_style) ")
+    git_branch_style = spec.get("git_branch_style", "fg:accent_alt")
+    git_branch_format = spec.get("git_branch_format", "[$symbol$branch]($style) ")
+
+    starship_lines = [
+        f"# DETech Starship Prompt — Preset: {spec.get('name', preset_id)} ({preset_id})",
+        f"# Preview: {spec.get('preview', '')}",
+        '"$schema" = "https://starship.rs/config-schema.json"',
+        f"add_newline = {add_nl}",
+        'palette = "detech"',
+        f'format = "{fmt}"',
+    ]
+    if rfmt:
+        starship_lines.append(f'right_format = "{rfmt}"')
+
+    starship_lines.extend(
+        [
+            "",
+            "[character]",
+            f"success_symbol = '{spec.get('character_success', '[❯](bold fg:accent)')}'",
+            f"error_symbol = '{spec.get('character_error', '[❯](bold fg:urgent)')}'",
+            "",
+            "[os]",
+            "disabled = false",
+            'style = "bold fg:accent"',
+            "",
+            "[os.symbols]",
+            'FreeBSD = " "',
+            "",
+            "[username]",
+            "show_always = true",
+            'style_user = "bold fg:accent_alt"',
+            'style_root = "bold fg:urgent"',
+            'format = "[$user]($style)"',
+            "",
+            "[hostname]",
+            "ssh_only = false",
+            'style = "bold fg:accent"',
+            'format = "[$hostname]($style)"',
+            "",
+            "[directory]",
+            "truncation_length = 3",
+            'truncation_symbol = "…/"',
+            f'style = "{dir_style}"',
+            f'format = "{dir_format}"',
+            'read_only = " 󰌾"',
+            'read_only_style = "fg:urgent"',
+            "",
+            "[git_branch]",
+            'symbol = " "',
+            f'style = "{git_branch_style}"',
+            f'format = "{git_branch_format}"',
+            "",
+            "[git_status]",
+            'style = "fg:warning"',
+            'format = "([$all_status$ahead_behind]($style))"',
+            "",
+            "[cmd_duration]",
+            "min_time = 500",
+            'format = "[󱎫 $duration](fg:warning) "',
+            "",
+            "[jobs]",
+            'symbol = "✦ "',
+            'style = "bold fg:accent_alt"',
+            "",
+            "[time]",
+            "disabled = false",
+            'time_format = "%H:%M"',
+            'format = "[ $time](fg:fg_muted)"',
+            "",
+            "[python]",
+            'symbol = " "',
+            'style = "fg:accent_alt"',
+            'format = "[${symbol}${version} ]($style)"',
+            "",
+            "[rust]",
+            'symbol = " "',
+            'style = "fg:warning"',
+            'format = "[${symbol}${version} ]($style)"',
+            "",
+            "[golang]",
+            'symbol = " "',
+            'style = "fg:accent"',
+            'format = "[${symbol}${version} ]($style)"',
+            "",
+            "[nodejs]",
+            'symbol = " "',
+            'style = "fg:success"',
+            'format = "[${symbol}${version} ]($style)"',
+            "",
+            "[c]",
+            'symbol = " "',
+            'style = "fg:fg_secondary"',
+            'format = "[${symbol}${version} ]($style)"',
+            "",
+            "[lua]",
+            'symbol = " "',
+            'style = "fg:accent_alt"',
+            'format = "[${symbol}${version} ]($style)"',
+            "",
+            "[palettes.detech]",
+            f'bg_primary = "{palette["bg_primary"]}"',
+            f'bg_secondary = "{palette["bg_secondary"]}"',
+            f'bg_tertiary = "{palette["bg_tertiary"]}"',
+            f'fg_primary = "{palette["fg_primary"]}"',
+            f'fg_secondary = "{palette["fg_secondary"]}"',
+            f'fg_muted = "{palette["fg_muted"]}"',
+            f'accent = "{palette["accent"]}"',
+            f'accent_alt = "{palette["accent_alt"]}"',
+            f'urgent = "{palette["urgent"]}"',
+            f'success = "{palette["success"]}"',
+            f'warning = "{palette["warning"]}"',
+        ]
+    )
+    for idx in range(16):
+        key = f"color{idx}"
+        if key in palette:
+            starship_lines.append(f'{key} = "{palette[key]}"')
+
+    return "\n".join(starship_lines) + "\n"
+
+
 def generate_terminal_and_shell_configs(
     context: dict[str, Any],
     palette: dict[str, str],
     fonts: dict[str, Any],
     config_root: Path,
 ) -> list[Path]:
-    """Generate `kitty/kitty.conf`, `kitty/detech-theme.conf`, and `starship.toml`."""
+    """Generate `kitty/kitty.conf`, `kitty/detech-theme.conf`, `starship.toml`, and all 15 Starship presets."""
     written: list[Path] = []
 
     # 1. Kitty configs
@@ -82,69 +212,22 @@ def generate_terminal_and_shell_configs(
     kitty_conf.write_text("\n".join(kitty_lines) + "\n", encoding="utf-8")
     written.append(kitty_conf)
 
-    # 2. Starship prompt config (15 presets)
+    # 2. Pre-compile all 15 Starship prompt presets into `starship/presets/<id>.toml`
+    starship_presets_dir = config_root / "starship" / "presets"
+    starship_presets_dir.mkdir(parents=True, exist_ok=True)
+    for item in list_starship_prompts():
+        pid = item["id"]
+        p_path = starship_presets_dir / f"{pid}.toml"
+        p_path.write_text(render_starship_toml(item, palette), encoding="utf-8")
+        written.append(p_path)
+
+    # 3. Active `starship.toml`
     appearance = context.get("config", {}).get("appearance", {})
     preset_id = appearance.get("starship_preset", "tokyo-pill")
-    spec = get_starship_prompt(preset_id)
+    active_spec = get_starship_prompt(preset_id)
 
     starship_path = config_root / "starship.toml"
-    add_nl = "true" if spec.get("add_newline", True) else "false"
-    fmt = spec.get("format", "$directory$git_branch$character").replace("\n", "\\n")
-    rfmt = spec.get("right_format", "")
-
-    starship_lines = [
-        f"# DETech Starship Prompt — Preset: {spec.get('name', preset_id)} ({preset_id})",
-        '"$schema" = "https://starship.rs/config-schema.json"',
-        f"add_newline = {add_nl}",
-        'palette = "detech"',
-        f'format = "{fmt}"',
-    ]
-    if rfmt:
-        starship_lines.append(f'right_format = "{rfmt}"')
-
-    starship_lines.extend(
-        [
-            "",
-            "[character]",
-            f"success_symbol = '{spec.get('character_success', '[❯](bold fg:accent)')}'",
-            f"error_symbol = '{spec.get('character_error', '[❯](bold fg:urgent)')}'",
-            "",
-            "[directory]",
-            "truncation_length = 3",
-            'truncation_symbol = "…/"',
-            'style = "bold fg:accent"',
-            "",
-            "[git_branch]",
-            'symbol = " "',
-            'style = "fg:accent_alt"',
-            "",
-            "[git_status]",
-            'style = "fg:warning"',
-            "",
-            "[cmd_duration]",
-            "min_time = 500",
-            'format = "[󱎫 $duration](fg:warning) "',
-            "",
-            "[time]",
-            "disabled = false",
-            'time_format = "%H:%M"',
-            'format = "[$time](fg:fg_muted)"',
-            "",
-            "[palettes.detech]",
-            f'bg_primary = "{palette["bg_primary"]}"',
-            f'bg_secondary = "{palette["bg_secondary"]}"',
-            f'bg_tertiary = "{palette["bg_tertiary"]}"',
-            f'fg_primary = "{palette["fg_primary"]}"',
-            f'fg_secondary = "{palette["fg_secondary"]}"',
-            f'fg_muted = "{palette["fg_muted"]}"',
-            f'accent = "{palette["accent"]}"',
-            f'accent_alt = "{palette["accent_alt"]}"',
-            f'urgent = "{palette["urgent"]}"',
-            f'success = "{palette["success"]}"',
-            f'warning = "{palette["warning"]}"',
-        ]
-    )
-    starship_path.write_text("\n".join(starship_lines) + "\n", encoding="utf-8")
+    starship_path.write_text(render_starship_toml(active_spec, palette), encoding="utf-8")
     written.append(starship_path)
 
     return written

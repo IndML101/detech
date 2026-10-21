@@ -21,7 +21,8 @@ def open_waybar_layout_menu() -> str | None:
     for item in layouts:
         lid = item["id"]
         badge = "★ Active" if lid == current else item.get("position", "top")
-        rows.append((f"󰍜  {lid:<20} [{badge:<10}] — {item.get('name', lid)}", lid))
+        variant = item.get("style_variant", "pill")
+        rows.append((f"󰍜  {lid:<20} [{badge:<10} | {variant:<16}] — {item.get('name', lid)}", lid))
 
     chosen = run_rofi_dmenu(
         [r[0] for r in rows],
@@ -78,7 +79,8 @@ def open_starship_menu() -> str | None:
     for item in prompts:
         pid = item["id"]
         badge = "★ Active" if pid == current else "Apply"
-        rows.append((f"  {pid:<20} [{badge:<8}] — {item.get('name', pid)}", pid))
+        preview = item.get("preview", "")
+        rows.append((f"  {pid:<18} [{badge:<8}] — {item.get('name', pid):<38}  {preview}", pid))
 
     chosen = run_rofi_dmenu(
         [r[0] for r in rows],
