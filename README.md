@@ -9,7 +9,18 @@ Users configure their entire desktop through clean, declarative **Lua configurat
 ## Key Features
 
 - **FreeBSD-Native Hardware & OS Stack**: First-class support for FreeBSD `/usr/sbin/mixer` (plus PipeWire/PulseAudio), `/usr/bin/backlight`, `sysctl hw.acpi.battery` & `hw.acpi.thermal`, `acpiconf`, `seatd`/`consolekit2`, `doas`, and FreeBSD `pkg`.
-- **Declarative Lua Configuration**: Configure general settings, fonts, appearance, keyboard shortcuts, monitors, window rules, Hyprland plugins, and FreeBSD hardware backends in Lua (`~/.config/detech/*.lua`).
+- **Neofetch Terminal System Info**: Generates a themed FreeBSD `neofetch/config.conf` (displaying FreeBSD Beastie ASCII, kernel, uptime, ZFS root pool, active DETech theme, icon theme, Waybar/Starship presets, and Nerd Font) and an interactive shell startup hook (`detech/shell-init.sh`) + `detech fetch` CLI command.
+- **Rich Waybar Widget Suite, Notifications & System Tray**:
+  - **Weather (`custom/weather`)**: Auto-detects location via `wttr.in` (with optional `location` & `units` overrides), caches locally, and opens a 3-day forecast popup (`SUPER + M`).
+  - **Interactive Calendar (`custom/calendar` & `clock`)**: Pango-highlighted month grid in tooltip + interactive Rofi month-navigation calendar (`SUPER + C`).
+  - **Notifications & Do Not Disturb (`custom/dnd` / `custom/notifications`)**: Displays unread/history badge count from `dunstctl`, recent notification history in tooltip, interactive **Rofi Notification Center** (`SUPER + O`, left-click), DND toggle (`SUPER + SHIFT + N`, right-click), and dismiss-all (middle-click).
+  - **System Tray (`tray`)**: Enabled across all 15 Waybar layouts with passive item support and dynamic theme-matched context menu CSS (`#tray menu`).
+  - **FreeBSD Network (`custom/bsd-net`)**: Queries FreeBSD `ifconfig` for active Wi-Fi SSID (`wlan0`) or Ethernet (`em0`) and IPv4 address.
+  - **MPRIS Media Player (`custom/media`)**: Displays `playerctl` Now Playing artist/title with click to play/pause and scroll for next/previous track.
+  - **FreeBSD Kernel & Uptime (`custom/bsd-uptime`)**: Queries `sysctl kern.boottime` & `kern.osrelease`, launching `detech fetch` on click.
+  - **Clipboard Manager (`custom/clipboard`)**: Displays `cliphist` item count and launches the Rofi clipboard history picker (`SUPER + Y`).
+- **System-Wide Icon Themes**: Includes 12 curated icon packs (`Papirus-Dark`, `Papirus-Light`, `Papirus`, `Tela-circle-dark`, `Tela-circle`, `Catppuccin-SE`, `Gruvbox-Plus-Dark`, `TokyoNight-SE`, `Nordzy-dark`, `Qogir-dark`, `Breeze-Dark`, `Numix-Circle`, `Adwaita`) plus automatic discovery of custom icon packs in `/usr/local/share/icons` and `~/.local/share/icons`, synced across GTK-2/3/4, Qt5/Qt6, Rofi, Dunst, and Neofetch.
+- **Declarative Lua Configuration**: Configure general settings, terminal info, fonts, appearance, keyboard shortcuts, monitors, window rules, Hyprland plugins, widgets, and FreeBSD hardware backends in Lua (`~/.config/detech/*.lua`).
 - **Keyboard-Centric Rofi Picker Suite**:
   - `SUPER + /` — **Keybind Search & Runner** (fuzzy search and execute any shortcut directly)
   - `SUPER + D` — **Rofi App Drawer** (switchable between **15 layouts**)
@@ -25,6 +36,11 @@ Users configure their entire desktop through clean, declarative **Lua configurat
   - `SUPER + S` — **FreeBSD `pkg` Software Picker**
   - `SUPER + E` — **Rofi File Browser**
   - `SUPER + .` — **Emoji, NerdFont Glyph & Symbol Picker**
+  - `SUPER + C` — **Interactive Rofi Calendar**
+  - `SUPER + M` — **Weather Forecast Popup**
+  - `SUPER + Y` — **Clipboard History Picker (`cliphist`)**
+  - `SUPER + O` — **Rofi Notification Center (`dunstctl` history, pop, dismiss)**
+  - `SUPER + SHIFT + N` — **Toggle Do Not Disturb (`dunst`)**
 - **Hybrid Color Engine**: Use curated palettes from **10 theme packs** (`bsd-crimson`, `ryoku-matcha`, `hyde-catppuccin`, `tokyo-cyber`, `nordic-frost`, `gruvbox-material`, `rose-pine-moon`, `kanagawa-wave`, `dracula-pro`, `solarized-bsd`) or dynamically generate 16-color + surface palettes from any wallpaper, with full **GTK-2/3/4, Qt5ct/Qt6ct, and Kvantum SVG/kvconfig asset bundle generation**.
 
 ---
@@ -35,16 +51,27 @@ Users configure their entire desktop through clean, declarative **Lua configurat
 # 1. Bootstrap FreeBSD dependencies, seatd/dbus, and DETech configs
 sh scripts/install-freebsd.sh
 
-# 2. Check current DETech state and compile configs
+# 2. Check current DETech state, display Neofetch system info, and compile configs
 detech status
+detech fetch
 detech apply
 
-# 3. Switch presets from the CLI or via Rofi menus
+# 3. Switch presets, icon themes, and widget settings from the CLI or via Rofi menus
 detech set theme bsd-crimson
 detech set waybar island-top
 detech set rofi grid-cards
 detech set starship tokyo-pill
+detech set icon Papirus-Dark
 detech set font "JetBrainsMono Nerd Font" --size 11
+detech set neofetch true
+detech set weather-location "San Francisco"
+detech set weather-units m
+
+# 4. List available themes, layouts, Nerd Fonts, or icon packs
+detech list themes
+detech list waybar
+detech list icons
+detech list fonts
 ```
 
 ---

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from detech.core.color_engine import list_themes
@@ -9,14 +10,75 @@ from detech.core.compiler import compile_all
 from detech.core.state import get_effective_context, update_state
 from detech.menus.rofi_runner import run_rofi_dmenu
 
-ICON_PACK_CATALOG: list[tuple[str, str]] = [
-    ("Papirus-Dark", "Papirus Dark (Crisp flat vector icons)"),
-    ("Papirus-Light", "Papirus Light (For high-contrast light/pastel setups)"),
-    ("Tela-circle", "Tela Circle (Modern circular colorful icons)"),
-    ("Catppuccin-SE", "Catppuccin Soothing Pastel Icons"),
-    ("Gruvbox-Plus-Dark", "Gruvbox Retro Warm Icon Pack"),
-    ("Adwaita", "FreeBSD / GNOME Standard Fallback Icons"),
+ICON_PACK_CATALOG: list[tuple[str, str, str]] = [
+    ("Papirus-Dark", "Papirus Dark (Crisp flat vector icons)", "papirus-icon-theme"),
+    ("Papirus-Light", "Papirus Light (For high-contrast light/pastel setups)", "papirus-icon-theme"),
+    ("Papirus", "Papirus Standard (Balanced colorful vector icons)", "papirus-icon-theme"),
+    ("Tela-circle-dark", "Tela Circle Dark (Modern circular dark icons)", "tela-icon-theme"),
+    ("Tela-circle", "Tela Circle (Modern circular colorful icons)", "tela-icon-theme"),
+    ("Catppuccin-SE", "Catppuccin Soothing Pastel Icons", "catppuccin-icon-theme"),
+    ("Gruvbox-Plus-Dark", "Gruvbox Retro Warm Icon Pack", "gruvbox-icon-theme"),
+    ("TokyoNight-SE", "Tokyo Night Cyber Neon Icon Pack", "tokyonight-icon-theme"),
+    ("Nordzy-dark", "Nordic Frost Polar Dark Icons", "nordzy-icon-theme"),
+    ("Qogir-dark", "Qogir Flat Material Dark Icons", "qogir-icon-theme"),
+    ("Breeze-Dark", "KDE Breeze Dark Vector Icons", "kf6-breeze-icons"),
+    ("Numix-Circle", "Numix Circular App Icons", "numix-icon-theme-circle"),
+    ("Adwaita", "FreeBSD / GNOME Standard Fallback Icons", "adwaita-icon-theme"),
 ]
+
+
+def discover_installed_icon_themes() -> set[str]:
+    """Scan FreeBSD (`/usr/local/share/icons`) and user (`~/.local/share/icons`, `~/.icons`) directories."""
+    search_dirs = [
+        Path("/usr/local/share/icons"),
+        Path("/usr/share/icons"),
+        Path.home() / ".local" / "share" / "icons",
+        Path.home() / ".icons",
+    ]
+    found: set[str] = set()
+    for base in search_dirs:
+        if not base.is_dir():
+            continue
+        try:
+            for child in base.iterdir():
+                if child.is_dir() and (child / "index.theme").is_file():
+                    if child.name.lower() not in ("default", "hicolor", "locolor"):
+                        found.add(child.name)
+        except OSError:
+            continue
+    return found
+
+
+def list_icon_themes(active_icon: str = "Papirus-Dark") -> list[dict[str, Any]]:
+    """Return curated and system-discovered icon themes with installation & active status."""
+    installed = discover_installed_icon_themes()
+    items: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    for pack_id, desc, pkg_name in ICON_PACK_CATALOG:
+        seen.add(pack_id)
+        is_inst = pack_id in installed
+        items.append(
+            {
+                "id": pack_id,
+                "description": desc,
+                "pkg": pkg_name,
+                "installed": is_inst,
+                "active": pack_id == active_icon,
+            }
+        )
+
+    for custom_id in sorted(installed - seen):
+        items.append(
+            {
+                "id": custom_id,
+                "description": "System / User Installed Icon Theme",
+                "pkg": "local",
+                "installed": True,
+                "active": custom_id == active_icon,
+            }
+        )
+    return items
 
 
 def build_theme_menu_entries(active_theme: str = "bsd-crimson") -> list[dict[str, Any]]:
@@ -109,18 +171,20 @@ def open_color_scheme_menu() -> str | None:
 
 
 def open_icon_menu() -> str | None:
-    """Open Rofi Icon Pack Picker and update GTK/Qt/Rofi icon themes."""
+    """Open Rofi Icon Pack Picker and update GTK/Qt/Rofi/Dunst icon themes."""
     ctx = get_effective_context()
     current_icon = ctx.get("config", {}).get("appearance", {}).get("icon_theme", "Papirus-Dark")
     rows = []
-    for pack_id, desc in ICON_PACK_CATALOG:
-        badge = "★ Active" if pack_id == current_icon else "Apply"
-        rows.append((f"󰀻  {pack_id:<22} [{badge}] — {desc}", pack_id))
+    for item in list_icon_themes(active_icon=current_icon):
+        pack_id = item["id"]
+        desc = item["description"]
+        badge = "★ Active" if item["active"] else ("Installed" if item["installed"] else "Available")
+        rows.append((f"󰀻  {pack_id:<22} [{badge:<9}] — {desc}", pack_id))
 
     chosen = run_rofi_dmenu(
         [r[0] for r in rows],
         prompt="󰀻  Icons",
-        mesg=f"Active Icon Theme: {current_icon}",
+        mesg=f"Active Icon Theme: {current_icon} (Syncs GTK-2/3/4, Qt5/6, Rofi & Dunst)",
     )
     if not chosen:
         return None

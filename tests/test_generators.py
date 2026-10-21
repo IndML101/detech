@@ -76,6 +76,25 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     wb_json = json.loads("\n".join(wb_lines[1:]))
     assert "custom/bsd-battery" in wb_json["modules-right"]
     assert "custom/bsd-zfs" in wb_json["modules-left"]
+    assert "custom/calendar" in wb_json["modules-center"]
+    assert "custom/weather" in wb_json["modules-center"]
+    assert "custom/bsd-net" in wb_json["modules-right"]
+    assert "custom/dnd" in wb_json["modules-right"]
+    assert "custom/clipboard" in wb_json["modules-right"]
+    assert "custom/bsd-uptime" in wb_json["modules-left"]
+    assert "calendar" in wb_json["clock"]
+
+    # Verify Neofetch config and shell startup hook
+    neofetch_conf = out_dir / "neofetch" / "config.conf"
+    shell_init = out_dir / "detech" / "shell-init.sh"
+    assert neofetch_conf.is_file()
+    assert shell_init.is_file()
+    nf_text = neofetch_conf.read_text(encoding="utf-8")
+    assert 'ascii_distro="FreeBSD"' in nf_text
+    assert "ryoku-matcha" in nf_text
+    sh_text = shell_init.read_text(encoding="utf-8")
+    assert 'export DETECH_NEOFETCH="1"' in sh_text
+    assert "neofetch --config" in sh_text
 
     # Verify all 15 pre-compiled Waybar layouts and stylesheets
     for item in list_waybar_layouts():

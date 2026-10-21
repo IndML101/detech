@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -12,6 +13,7 @@ from typing import Sequence
 from detech.core.color_engine import list_themes, resolve_active_palette
 from detech.core.compiler import compile_all
 from detech.core.font_manager import get_nerd_font_status_list, resolve_font_settings
+from detech.core.paths import get_xdg_config_dir
 from detech.core.state import get_effective_context, update_state
 from detech.freebsd.audio import run_audio_action
 from detech.freebsd.backlight import run_backlight_action
@@ -24,6 +26,16 @@ from detech.freebsd.power import (
     get_system_load_status,
     get_thermal_status,
     get_zfs_status,
+)
+from detech.freebsd.widgets import (
+    get_calendar_status,
+    get_clipboard_status,
+    get_dnd_status,
+    get_media_status,
+    get_network_status,
+    get_uptime_kernel_status,
+    get_weather_status,
+    run_media_action,
 )
 from detech.generators.hyprland import list_hyprlock_layouts, list_plugin_presets
 from detech.generators.rofi import list_rofi_layouts
@@ -42,8 +54,14 @@ from detech.menus.layout_menu import (
 )
 from detech.menus.pkg_menu import open_software_menu
 from detech.menus.rofi_runner import launch_app_drawer
-from detech.menus.theme_menu import open_color_scheme_menu, open_icon_menu, open_theme_menu
+from detech.menus.theme_menu import list_icon_themes, open_color_scheme_menu, open_icon_menu, open_theme_menu
 from detech.menus.wallpaper_menu import open_wallpaper_menu
+from detech.menus.widget_menus import (
+    open_calendar_menu,
+    open_clipboard_menu,
+    open_notifications_menu,
+    open_weather_menu,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -56,6 +74,10 @@ def build_parser() -> argparse.ArgumentParser:
     # detech status
     p_status = sub.add_parser("status", help="Show active DETech configuration & runtime state")
     p_status.add_argument("--json", action="store_true", help="Output status as JSON")
+
+    # detech fetch
+    p_fetch = sub.add_parser("fetch", help="Display FreeBSD + DETech system information in terminal via Neofetch")
+    p_fetch.add_argument("--config-dir", type=Path, default=None, help="Override XDG ~/.config directory")
 
     # detech apply
     p_apply = sub.add_parser("apply", help="Compile Lua configs into native Hypr/Waybar/Rofi/Kitty/Starship configs")
@@ -77,6 +99,9 @@ def build_parser() -> argparse.ArgumentParser:
             "icon",
             "wallpaper",
             "dynamic-colors",
+            "neofetch",
+            "weather-location",
+            "weather-units",
         ],
     )
     p_set.add_argument("value", help="New value for the target setting")
@@ -85,10 +110,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_set.add_argument("--no-reload", action="store_true", help="Skip live daemon reload")
 
     # detech list <category>
-    p_list = sub.add_parser("list", help="List available themes, layouts, prompts, plugins, Nerd Fonts, or keybinds")
+    p_list = sub.add_parser("list", help="List available themes, layouts, prompts, plugins, Nerd Fonts, icons, or keybinds")
     p_list.add_argument(
         "category",
-        choices=["themes", "waybar", "rofi", "starship", "hyprlock", "plugins", "fonts", "keybinds", "glyphs"],
+        choices=["themes", "waybar", "rofi", "starship", "hyprlock", "plugins", "fonts", "icons", "keybinds", "glyphs"],
     )
 
     # detech menu <menu_name>
@@ -111,6 +136,10 @@ def build_parser() -> argparse.ArgumentParser:
             "files",
             "software",
             "glyphs",
+            "calendar",
+            "weather",
+            "clipboard",
+            "notifications",
         ],
     )
 
@@ -139,6 +168,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_pkg.add_argument("action", choices=["updates", "list", "search"])
     p_pkg.add_argument("query", nargs="?", default="")
     p_pkg.add_argument("--json", action="store_true")
+
+    p_widgets = bsd_sub.add_parser("widgets", help="Waybar widgets (weather, calendar, network, media, dnd, uptime, clipboard)")
+    p_widgets.add_argument(
+        "widget",
+        choices=["weather", "calendar", "network", "media", "dnd", "uptime", "clipboard"],
+    )
+    p_widgets.add_argument("subaction", nargs="?", default="status")
+    p_widgets.add_argument("--json", action="store_true")
+    p_widgets.add_argument("--location", default=None, help="Override weather city/location")
+    p_widgets.add_argument("--units", default=None, help="Override weather units (m or u)")
 
     return parser
 
@@ -176,6 +215,33 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"  {k:<26}: {v}")
         return 0
 
+    if args.command == "fetch":
+        cfg_root = get_xdg_config_dir(args.config_dir)
+        nf_conf = cfg_root / "neofetch" / "config.conf"
+        if shutil.which("neofetch"):
+            cmd = ["neofetch"]
+            if nf_conf.is_file():
+                cmd.extend(["--config", str(nf_conf)])
+            subprocess.run(cmd, check=False)
+        else:
+            ctx = get_effective_context()
+            _, palette = resolve_active_palette(ctx)
+            fonts = resolve_font_settings(ctx)
+            appearance = ctx.get("config", {}).get("appearance", {})
+            up = get_uptime_kernel_status()
+            mem = get_memory_status()
+            zfs = get_zfs_status()
+            print("   _       _       FreeBSD — DETech Hyprland")
+            print("  / \\     / \\    ──────────────────────────────")
+            print(f" (   \\___/   )    Kernel   ❯ {up['kernel']}")
+            print(f"  \\         /    󱎫 Uptime   ❯ {up['uptime']}")
+            print(f"   |  O O  |      WM       ❯ Hyprland ({appearance.get('waybar_layout', 'island-top')})")
+            print(f"   |   v   |     󰔎 Theme    ❯ {appearance.get('theme', 'bsd-crimson')} ({palette['accent']})")
+            print(f"    \\_____/      󰛖 Font     ❯ {fonts['mono']} ({fonts['size']}pt)")
+            print(f"                 󰘚 Memory   ❯ {mem['text']}")
+            print(f"                 󰋊 ZFS      ❯ {zfs['text']}")
+        return 0
+
     if args.command == "apply":
         result = compile_all(output_dir=args.output_dir, reload_daemons=not args.no_reload)
         print(f"✓ Compiled {len(result['written_files'])} configuration files into {result['output_dir']}")
@@ -203,6 +269,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif t == "dynamic-colors":
             enabled = val.lower() in ("true", "1", "yes", "on")
             update_state(dynamic_wallpaper_colors=enabled)
+        elif t == "neofetch":
+            enabled = val.lower() in ("true", "1", "yes", "on")
+            update_state(enable_neofetch=enabled)
+        elif t == "weather-location":
+            update_state(weather_location=val)
+        elif t == "weather-units":
+            update_state(weather_units=val)
         elif t == "font":
             updates: dict[str, object] = {
                 "font_mono": val,
@@ -243,6 +316,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             for item in get_nerd_font_status_list():
                 status = "installed" if item["installed"] else "available"
                 print(f"{item['family']:<28} [{status:<9}] — {item['style_hint']}")
+        elif cat == "icons":
+            ctx = get_effective_context()
+            cur_icon = ctx.get("config", {}).get("appearance", {}).get("icon_theme", "Papirus-Dark")
+            for item in list_icon_themes(active_icon=cur_icon):
+                status = "active" if item["active"] else ("installed" if item["installed"] else "available")
+                print(f"{item['id']:<22} [{status:<9}] — {item['description']} (pkg: {item['pkg']})")
         elif cat == "keybinds":
             for item in format_keybind_entries():
                 print(item["label"])
@@ -283,6 +362,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             open_software_menu()
         elif m == "glyphs":
             open_glyph_menu()
+        elif m == "calendar":
+            open_calendar_menu()
+        elif m == "weather":
+            ctx = get_effective_context()
+            w_cfg = ctx.get("config", {}).get("widgets", {}).get("weather", {})
+            open_weather_menu(
+                location=str(w_cfg.get("location", "")),
+                units=str(w_cfg.get("units", "m")),
+            )
+        elif m == "clipboard":
+            open_clipboard_menu()
+        elif m == "notifications":
+            open_notifications_menu()
         return 0
 
     if args.command == "bsd":
@@ -373,6 +465,36 @@ def main(argv: Sequence[str] | None = None) -> int:
                 for p in search_remote_packages(args.query):
                     print(f"{p['name']} ({p['version']}) - {p['comment']}")
                 return 0
+
+        if subsys == "widgets":
+            w_cfg = ctx.get("config", {}).get("widgets", {})
+            _, palette = resolve_active_palette(ctx)
+            w_type = args.widget
+
+            if w_type == "weather":
+                weather_conf = w_cfg.get("weather", {})
+                loc = args.location if args.location is not None else str(weather_conf.get("location", ""))
+                units = args.units if args.units is not None else str(weather_conf.get("units", "m"))
+                ttl = int(weather_conf.get("interval", 900))
+                res = get_weather_status(location=loc, units=units, cache_ttl=ttl)
+            elif w_type == "calendar":
+                res = get_calendar_status(accent_color=palette.get("accent", "#e64553"))
+            elif w_type == "network":
+                res = get_network_status()
+            elif w_type == "media":
+                if args.subaction in ("play-pause", "next", "prev"):
+                    res = run_media_action(args.subaction)
+                else:
+                    res = get_media_status()
+            elif w_type == "dnd":
+                res = get_dnd_status(action=args.subaction)
+            elif w_type == "uptime":
+                res = get_uptime_kernel_status()
+            else:
+                res = get_clipboard_status(clear=(args.subaction == "clear"))
+
+            print(format_waybar_json(res) if args.json else res["text"])
+            return 0
 
     return 0
 

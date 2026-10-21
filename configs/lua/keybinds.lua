@@ -31,6 +31,11 @@ return {
         { mod = {mod}, key = "E", action = "exec", arg = "detech menu files", category = "Launcher", desc = "Rofi File Browser" },
         { mod = {mod}, key = "S", action = "exec", arg = "detech menu software", category = "FreeBSD", desc = "FreeBSD pkg Software Picker" },
         { mod = {mod}, key = "Period", action = "exec", arg = "detech menu glyphs", category = "Launcher", desc = "Emoji, NerdFont Glyph & Symbol Picker" },
+        { mod = {mod}, key = "C", action = "exec", arg = "detech menu calendar", category = "Widgets", desc = "Open Interactive Rofi Calendar" },
+        { mod = {mod}, key = "M", action = "exec", arg = "detech menu weather", category = "Widgets", desc = "Open Weather Forecast Popup" },
+        { mod = {mod}, key = "Y", action = "exec", arg = "detech menu clipboard", category = "Widgets", desc = "Open Clipboard History Picker (cliphist)" },
+        { mod = {mod}, key = "O", action = "exec", arg = "detech menu notifications", category = "Widgets", desc = "Open Notification Center (Dunst)" },
+        { mod = {mod, "SHIFT"}, key = "N", action = "exec", arg = "detech bsd widgets dnd toggle", category = "Widgets", desc = "Toggle Do Not Disturb (Dunst)" },
 
         -- Window Management & Layout
         { mod = {mod}, key = "V", action = "togglefloating", arg = "", category = "Window", desc = "Toggle Floating Window" },

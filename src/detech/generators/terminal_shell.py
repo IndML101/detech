@@ -1,4 +1,4 @@
-"""Kitty Terminal & Starship Prompt Generator (15 Switchable Starship Prompts)."""
+"""Kitty Terminal, Neofetch System Info & Starship Prompt Generator (15 Switchable Starship Prompts)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,154 @@ from typing import Any
 
 from detech.core.lua_loader import load_lua_file
 from detech.core.paths import get_presets_dir
+
+
+def render_neofetch_conf(
+    context: dict[str, Any],
+    palette: dict[str, str],
+    fonts: dict[str, Any],
+) -> str:
+    """Render a FreeBSD + DETech themed `neofetch/config.conf` file."""
+    cfg = context.get("config", {})
+    appearance = cfg.get("appearance", {})
+    term_info = cfg.get("terminal_info", {})
+
+    theme_name = appearance.get("theme", "bsd-crimson")
+    waybar_layout = appearance.get("waybar_layout", "island-top")
+    starship_preset = appearance.get("starship_preset", "tokyo-pill")
+    ascii_distro = term_info.get("ascii_distro", "FreeBSD")
+    show_zfs = bool(term_info.get("show_zfs", True))
+    show_hypr_theme = bool(term_info.get("show_hyprland_theme", True))
+
+    info_lines = [
+        "print_info() {",
+        "    info title",
+        "    info underline",
+        '    info " OS" distro',
+        '    info "󰌢 Host" model',
+        '    info " Kernel" kernel',
+        '    info "󱎫 Uptime" uptime',
+        '    info "󰏖 Packages" packages',
+        '    info " Shell" shell',
+        '    info " WM" wm',
+    ]
+    if show_hypr_theme:
+        icon_theme = appearance.get("icon_theme", "Papirus-Dark")
+        info_lines.extend(
+            [
+                f'    prin "󰔎 DETech Theme" "{theme_name} ({palette["accent"]})"',
+                f'    prin "󰀻 Icon Theme" "{icon_theme}"',
+                f'    prin "󰕮 Waybar Layout" "{waybar_layout}"',
+                f'    prin "󱆃 Starship" "{starship_preset}"',
+            ]
+        )
+    info_lines.extend(
+        [
+            f'    prin "󰛖 Nerd Font" "{fonts["mono"]} ({fonts["size"]}pt)"',
+            '    info " Terminal" term',
+            '    info "󰍛 CPU" cpu',
+            '    info "󰢮 GPU" gpu',
+            '    info "󰘚 Memory" memory',
+        ]
+    )
+    if show_zfs:
+        info_lines.append('    info "󰋊 Disk (ZFS)" disk')
+    info_lines.extend(
+        [
+            "    info cols",
+            "}",
+            "",
+            f"# DETech Active Palette Accent: {palette['accent']}",
+            'title_fqdn="off"',
+            'kernel_shorthand="on"',
+            'distro_shorthand="off"',
+            'os_arch="on"',
+            'uptime_shorthand="tiny"',
+            'memory_percent="on"',
+            'memory_unit="gib"',
+            'package_managers="on"',
+            'shell_path="off"',
+            'shell_version="on"',
+            'speed_type="bios_limit"',
+            'speed_shorthand="on"',
+            'cpu_brand="on"',
+            'cpu_speed="on"',
+            'cpu_cores="logical"',
+            'cpu_temp="C"',
+            'gpu_brand="on"',
+            'gpu_type="all"',
+            'disk_show=("/")',
+            'disk_subtitle="mount"',
+            'disk_percent="on"',
+            'colors=(1 7 4 1 3 7)',
+            'bold="on"',
+            'underline_enabled="on"',
+            'underline_char="─"',
+            'separator=" ❯"',
+            'block_range=(0 15)',
+            'color_blocks="on"',
+            'block_width=3',
+            'block_height=1',
+            'col_offset="auto"',
+            'bar_char_elapsed="━"',
+            'bar_char_total="─"',
+            'bar_border="on"',
+            'bar_length=15',
+            'bar_color_elapsed="distro"',
+            'bar_color_total="distro"',
+            'image_backend="ascii"',
+            'image_source="auto"',
+            f'ascii_distro="{ascii_distro}"',
+            'ascii_colors=(1 7 3)',
+            'ascii_bold="on"',
+            'gap=3',
+        ]
+    )
+    return (
+        "# DETech FreeBSD Neofetch Configuration\n"
+        f"# Theme: {theme_name} | Accent: {palette['accent']}\n\n"
+        + "\n".join(info_lines)
+        + "\n"
+    )
+
+
+def render_shell_init_sh(context: dict[str, Any], config_root: Path) -> str:
+    """Render POSIX/Zsh/Bash startup script that runs Neofetch and initializes Starship."""
+    cfg = context.get("config", {})
+    term_info = cfg.get("terminal_info", {})
+    enable_neofetch = bool(term_info.get("enable_neofetch", True))
+    neofetch_conf = config_root / "neofetch" / "config.conf"
+    starship_conf = config_root / "starship.toml"
+
+    lines = [
+        "# DETech Interactive Shell Initialization (Zsh / Bash / FreeBSD sh)",
+        "# Source this file in ~/.zshrc or ~/.bashrc: [ -f ~/.config/detech/shell-init.sh ] && . ~/.config/detech/shell-init.sh",
+        "",
+        f'export STARSHIP_CONFIG="{starship_conf}"',
+        f'export DETECH_NEOFETCH="{"1" if enable_neofetch else "0"}"',
+        "",
+        "# Auto-display FreeBSD system information via Neofetch in interactive terminals",
+        'case "$-" in',
+        "    *i*)",
+        '        if [ "$DETECH_NEOFETCH" = "1" ] && [ -z "${DETECH_NEOFETCH_SHOWN:-}" ]; then',
+        '            export DETECH_NEOFETCH_SHOWN=1',
+        "            if command -v neofetch >/dev/null 2>&1; then",
+        f'                neofetch --config "{neofetch_conf}"',
+        "            elif command -v fastfetch >/dev/null 2>&1; then",
+        "                fastfetch",
+        "            fi",
+        "        fi",
+        "        if command -v starship >/dev/null 2>&1; then",
+        '            if [ -n "${ZSH_VERSION:-}" ]; then',
+        '                eval "$(starship init zsh)"',
+        '            elif [ -n "${BASH_VERSION:-}" ]; then',
+        '                eval "$(starship init bash)"',
+        "            fi",
+        "        fi",
+        "        ;;",
+        "esac",
+    ]
+    return "\n".join(lines) + "\n"
 
 
 def list_starship_prompts() -> list[dict[str, Any]]:
@@ -229,5 +377,18 @@ def generate_terminal_and_shell_configs(
     starship_path = config_root / "starship.toml"
     starship_path.write_text(render_starship_toml(active_spec, palette), encoding="utf-8")
     written.append(starship_path)
+
+    # 4. Neofetch configuration (`neofetch/config.conf`) & Shell Startup hook (`detech/shell-init.sh`)
+    neofetch_dir = config_root / "neofetch"
+    neofetch_dir.mkdir(parents=True, exist_ok=True)
+    neofetch_conf_path = neofetch_dir / "config.conf"
+    neofetch_conf_path.write_text(render_neofetch_conf(context, palette, fonts), encoding="utf-8")
+    written.append(neofetch_conf_path)
+
+    detech_dir = config_root / "detech"
+    detech_dir.mkdir(parents=True, exist_ok=True)
+    shell_init_path = detech_dir / "shell-init.sh"
+    shell_init_path.write_text(render_shell_init_sh(context, config_root), encoding="utf-8")
+    written.append(shell_init_path)
 
     return written

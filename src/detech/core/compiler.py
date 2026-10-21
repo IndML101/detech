@@ -69,6 +69,9 @@ def trigger_hot_reload(
         subprocess.run(["pkill", "-USR2", "waybar"], check=False, capture_output=True)
         subprocess.run(["pkill", "-USR1", "kitty"], check=False, capture_output=True)
 
+    if shutil.which("dunstctl"):
+        subprocess.run(["dunstctl", "reload"], check=False, capture_output=True)
+
     if shutil.which("gsettings"):
         gtk_theme = theme_data.get("gtk_theme", "Adwaita-dark")
         icon_theme = appearance.get("icon_theme") or theme_data.get("icon_theme", "Papirus-Dark")

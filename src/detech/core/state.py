@@ -28,6 +28,9 @@ class RuntimeState:
     font_mono: str | None = None
     font_sans: str | None = None
     font_size: int | None = None
+    enable_neofetch: bool | None = None
+    weather_location: str | None = None
+    weather_units: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {k: v for k, v in asdict(self).items() if v is not None}
@@ -104,6 +107,18 @@ def get_effective_context(state_path: Path | None = None) -> dict[str, Any]:
         fonts["size"] = int(state.font_size)
         fonts["bar_size"] = int(state.font_size)
         fonts["rofi_size"] = int(state.font_size) + 1
+
+    if state.enable_neofetch is not None:
+        term_info = cfg.setdefault("terminal_info", {})
+        term_info["enable_neofetch"] = state.enable_neofetch
+
+    if state.weather_location is not None or state.weather_units is not None:
+        widgets_cfg = cfg.setdefault("widgets", {})
+        weather_cfg = widgets_cfg.setdefault("weather", {})
+        if state.weather_location is not None:
+            weather_cfg["location"] = state.weather_location
+        if state.weather_units is not None:
+            weather_cfg["units"] = state.weather_units
 
     configs["runtime_state"] = state.to_dict()
     return configs

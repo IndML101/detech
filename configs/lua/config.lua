@@ -9,6 +9,39 @@ return {
         editor = "nvim",
         notification_daemon = "dunst", -- "dunst" or "mako"
     },
+    terminal_info = {
+        enable_neofetch = true,
+        ascii_distro = "FreeBSD",
+        show_zfs = true,
+        show_hyprland_theme = true,
+    },
+    widgets = {
+        weather = {
+            enabled = true,
+            location = "", -- Empty string auto-detects location via wttr.in IP geolocation
+            units = "m",   -- "m" for metric (°C, km/h) or "u" for imperial (°F, mph)
+            interval = 900,
+        },
+        calendar = {
+            enabled = true,
+            start_monday = true,
+        },
+        network = { enabled = true },
+        media = { enabled = true },
+        dnd = {
+            enabled = true,
+            history_length = 50,
+            show_indicators = true,
+        },
+        tray = {
+            enabled = true,
+            icon_size = 16,
+            spacing = 8,
+            show_passive_items = true,
+        },
+        uptime = { enabled = true },
+        clipboard = { enabled = true },
+    },
     fonts = {
         mono = "JetBrainsMono Nerd Font",
         sans = "JetBrainsMono Nerd Font Propo",

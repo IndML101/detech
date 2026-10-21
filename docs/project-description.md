@@ -7,12 +7,13 @@ In short I want to rice hyprland using python scripts and lua configs.
 ## Features 
 - It should be keyboard friendly with lot of configurable keyboard shortcuts, and rofi menu for searching and running the shortcut 
 - 10 - 20 waybar layouts, which can be switched 
+- Waybar widgets for Weather (`wttr.in`), Interactive Calendar, Notifications & Do Not Disturb (`dunstctl`), System Tray (`tray`), FreeBSD Network (`ifconfig`), MPRIS Media (`playerctl`), FreeBSD Kernel & Uptime (`sysctl kern.boottime`), Clipboard History (`cliphist`), ZFS, `pkg`, ACPI Battery, Thermal, Load, Memory, Audio (`mixer`), and Backlight
 - Themes with icons, wallpapers, screen lock layout, waybar layout, color schemes - for GTK and QT apps.
-- Kitty will be default terminal 
-- rofi picker for themes, browsing files, picking software, keyboard shortcuts, wallpapers, color scemes, glyph, emojis etc.
+- Kitty will be default terminal, displaying FreeBSD & DETech system information via a themed Neofetch configuration (`neofetch`) on interactive terminal startup
+- rofi picker for themes, browsing files, picking software, keyboard shortcuts, wallpapers, color scemes, glyph, emojis, calendar, weather forecast, notification center, and clipboard history
 - 10 - 20 rofi layouts, for app drawer 
 - 10 - 20 cool starship prompts
-- icons picker 
+- icons picker (curated icon packs + automatic discovery of FreeBSD `/usr/local/share/icons` themes synced across GTK-2/3/4, Qt5/6, Rofi, Dunst, and Neofetch)
 - modular configuration 
 - system wide color schemes should change on picking walpapers and themes
 
