@@ -21,10 +21,11 @@ Users configure their entire desktop through clean, declarative **Lua configurat
   - `SUPER + SHIFT + B` — **Waybar Layout Switcher** (**15 layouts** included)
   - `SUPER + SHIFT + R` — **Rofi Layout Switcher** (**15 layouts** included)
   - `SUPER + SHIFT + P` — **Starship Prompt Switcher** (**15 prompts** included)
+  - `SUPER + SHIFT + G` — **Hyprland Plugin Preset Switcher** (**6 presets** included)
   - `SUPER + S` — **FreeBSD `pkg` Software Picker**
   - `SUPER + E` — **Rofi File Browser**
   - `SUPER + .` — **Emoji, NerdFont Glyph & Symbol Picker**
-- **Hybrid Color Engine**: Use curated palettes from theme packs (`bsd-crimson`, `ryoku-matcha`, `hyde-catppuccin`, `tokyo-cyber`, `nordic-frost`) or dynamically generate 16-color + surface palettes from any wallpaper.
+- **Hybrid Color Engine**: Use curated palettes from **10 theme packs** (`bsd-crimson`, `ryoku-matcha`, `hyde-catppuccin`, `tokyo-cyber`, `nordic-frost`, `gruvbox-material`, `rose-pine-moon`, `kanagawa-wave`, `dracula-pro`, `solarized-bsd`) or dynamically generate 16-color + surface palettes from any wallpaper, with full **GTK-2/3/4, Qt5ct/Qt6ct, and Kvantum SVG/kvconfig asset bundle generation**.
 
 ---
 
@@ -51,7 +52,7 @@ detech set font "JetBrainsMono Nerd Font" --size 11
 ## Repository Structure
 
 - `configs/lua/` — User-editable declarative Lua configurations (`config.lua`, `keybinds.lua`, `monitors.lua`, `rules.lua`, `plugins.lua`, `freebsd.lua`)
-- `presets/` — Modular catalog of 5 themes, 15 Waybar layouts, 15 Rofi app drawer layouts, 15 Starship prompts, and Hyprlock layouts
+- `presets/` — Modular catalog of 10 themes, 15 Waybar layouts, 15 Rofi app drawer layouts, 15 Starship prompts, 6 Hyprland plugin presets, and Hyprlock layouts
 - `src/detech/` — Python engine, Lua loader, hybrid color extractor, Nerd Font manager, FreeBSD hardware adapters, native config generators, and Rofi menus
 - `scripts/install-freebsd.sh` — FreeBSD installer and setup script
 - `docs/` — Project description, architecture specification, and implementation plan

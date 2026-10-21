@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from detech.core.compiler import compile_all
 from detech.core.state import get_effective_context, update_state
-from detech.generators.hyprland import list_hyprlock_layouts
+from detech.generators.hyprland import list_hyprlock_layouts, list_plugin_presets
 from detech.generators.rofi import list_rofi_layouts
 from detech.generators.terminal_shell import list_starship_prompts
 from detech.generators.waybar import list_waybar_layouts
@@ -123,4 +123,32 @@ def open_hyprlock_layout_menu() -> str | None:
             update_state(hyprlock_layout=lid)
             compile_all(reload_daemons=True)
             return lid
+    return None
+
+
+def open_plugins_menu() -> str | None:
+    """Open Rofi menu to switch official Hyprland plugin presets."""
+    ctx = get_effective_context()
+    current = ctx.get("plugins", {}).get("preset", "minimal-expo")
+    presets = list_plugin_presets()
+
+    rows = []
+    for item in presets:
+        pid = item["id"]
+        badge = "★ Active" if pid == current else "Apply"
+        rows.append((f"󰐱  {pid:<18} [{badge:<8}] — {item.get('name', pid)}", pid))
+
+    chosen = run_rofi_dmenu(
+        [r[0] for r in rows],
+        prompt="󰐱  Hypr Plugins",
+        mesg=f"Active Hyprland Plugin Preset: {current}",
+    )
+    if not chosen:
+        return None
+
+    for label, pid in rows:
+        if label == chosen:
+            update_state(plugin_preset=pid)
+            compile_all(reload_daemons=True)
+            return pid
     return None

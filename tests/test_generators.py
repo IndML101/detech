@@ -7,7 +7,7 @@ from pathlib import Path
 
 from detech.core.compiler import compile_all
 from detech.core.state import update_state
-from detech.generators.hyprland import list_hyprlock_layouts
+from detech.generators.hyprland import list_hyprlock_layouts, list_plugin_presets
 from detech.generators.rofi import list_rofi_layouts
 from detech.generators.terminal_shell import list_starship_prompts
 from detech.generators.waybar import list_waybar_layouts
@@ -22,6 +22,7 @@ def test_preset_catalog_counts() -> None:
     assert len(rofi_layouts) == 15
     assert len(starship_prompts) == 15
     assert len(list_hyprlock_layouts()) >= 4
+    assert len(list_plugin_presets()) == 6
 
     # Ensure every preset has rich metadata
     for item in waybar_layouts:
@@ -111,3 +112,23 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
         p_content = p_file.read_text(encoding="utf-8")
         assert f"({pid})" in p_content
         assert item["preview"] in p_content
+
+    # Verify GTK-2/3/4 and Kvantum asset bundle
+    assert (out_dir / "gtk-2.0" / "gtkrc").is_file()
+    assert (out_dir / "Kvantum" / "DETech" / "DETech.kvconfig").is_file()
+    assert (out_dir / "Kvantum" / "DETech" / "DETech.svg").is_file()
+    kv_svg = (out_dir / "Kvantum" / "DETech" / "DETech.svg").read_text(encoding="utf-8")
+    assert "#a7c080" in kv_svg
+
+    # Verify switching Hyprland plugin presets
+    update_state(state_path=state_file, plugin_preset="eye-candy")
+    compile_all(output_dir=out_dir, state_path=state_file, reload_daemons=False)
+    plug_text = (out_dir / "hypr" / "detech-plugins.conf").read_text(encoding="utf-8")
+    assert "Preset: eye-candy" in plug_text
+    assert "hyprtrails {" in plug_text
+    assert "borders-plus-plus {" in plug_text
+
+    update_state(state_path=state_file, plugin_preset="bsd-gamer")
+    compile_all(output_dir=out_dir, state_path=state_file, reload_daemons=False)
+    plug_gamer = (out_dir / "hypr" / "detech-plugins.conf").read_text(encoding="utf-8")
+    assert "csgo-vulkan-fix {" in plug_gamer

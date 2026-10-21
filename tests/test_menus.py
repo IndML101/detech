@@ -23,7 +23,7 @@ def test_font_and_theme_and_glyph_menus() -> None:
     assert any(r["type"] == "size" for r in font_rows)
 
     theme_rows = build_theme_menu_entries(active_theme="bsd-crimson")
-    assert len(theme_rows) == 5
+    assert len(theme_rows) == 10
 
     glyph_rows = format_glyph_entries()
     assert any(g["char"] == "" for g in glyph_rows)

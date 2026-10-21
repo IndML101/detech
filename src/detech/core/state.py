@@ -23,6 +23,7 @@ class RuntimeState:
     rofi_layout: str | None = None
     starship_preset: str | None = None
     hyprlock_layout: str | None = None
+    plugin_preset: str | None = None
     icon_theme: str | None = None
     font_mono: str | None = None
     font_sans: str | None = None
@@ -87,6 +88,9 @@ def get_effective_context(state_path: Path | None = None) -> dict[str, Any]:
         appearance["starship_preset"] = state.starship_preset
     if state.hyprlock_layout is not None:
         appearance["hyprlock_layout"] = state.hyprlock_layout
+    if state.plugin_preset is not None:
+        plugins_cfg = configs.setdefault("plugins", {})
+        plugins_cfg["preset"] = state.plugin_preset
     if state.icon_theme is not None:
         appearance["icon_theme"] = state.icon_theme
     if state.wallpaper is not None:

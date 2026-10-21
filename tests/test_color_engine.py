@@ -25,8 +25,21 @@ def test_color_format_helpers() -> None:
 
 def test_curated_themes_catalog() -> None:
     themes = list_themes()
+    assert len(themes) == 10
     names = {t["name"] for t in themes}
-    assert {"bsd-crimson", "ryoku-matcha", "hyde-catppuccin", "tokyo-cyber", "nordic-frost"}.issubset(names)
+    expected = {
+        "bsd-crimson",
+        "ryoku-matcha",
+        "hyde-catppuccin",
+        "tokyo-cyber",
+        "nordic-frost",
+        "gruvbox-material",
+        "rose-pine-moon",
+        "kanagawa-wave",
+        "dracula-pro",
+        "solarized-bsd",
+    }
+    assert expected.issubset(names)
 
     bsd = load_theme("bsd-crimson")
     assert bsd["colors"]["accent"] == "#e63946"

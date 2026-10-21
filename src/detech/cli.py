@@ -25,7 +25,7 @@ from detech.freebsd.power import (
     get_thermal_status,
     get_zfs_status,
 )
-from detech.generators.hyprland import list_hyprlock_layouts
+from detech.generators.hyprland import list_hyprlock_layouts, list_plugin_presets
 from detech.generators.rofi import list_rofi_layouts
 from detech.generators.terminal_shell import list_starship_prompts
 from detech.generators.waybar import list_waybar_layouts
@@ -35,6 +35,7 @@ from detech.menus.glyph_emoji_menu import format_glyph_entries, open_glyph_menu
 from detech.menus.keybinds_menu import format_keybind_entries, open_keybinds_menu
 from detech.menus.layout_menu import (
     open_hyprlock_layout_menu,
+    open_plugins_menu,
     open_rofi_layout_menu,
     open_starship_menu,
     open_waybar_layout_menu,
@@ -65,7 +66,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_set = sub.add_parser("set", help="Update a DETech preset, theme, font, or layout and recompile")
     p_set.add_argument(
         "target",
-        choices=["theme", "waybar", "rofi", "starship", "hyprlock", "font", "icon", "wallpaper", "dynamic-colors"],
+        choices=[
+            "theme",
+            "waybar",
+            "rofi",
+            "starship",
+            "hyprlock",
+            "plugins",
+            "font",
+            "icon",
+            "wallpaper",
+            "dynamic-colors",
+        ],
     )
     p_set.add_argument("value", help="New value for the target setting")
     p_set.add_argument("--size", type=int, default=None, help="Font size in pt (when setting font)")
@@ -73,10 +85,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_set.add_argument("--no-reload", action="store_true", help="Skip live daemon reload")
 
     # detech list <category>
-    p_list = sub.add_parser("list", help="List available themes, layouts, prompts, Nerd Fonts, or keybinds")
+    p_list = sub.add_parser("list", help="List available themes, layouts, prompts, plugins, Nerd Fonts, or keybinds")
     p_list.add_argument(
         "category",
-        choices=["themes", "waybar", "rofi", "starship", "hyprlock", "fonts", "keybinds", "glyphs"],
+        choices=["themes", "waybar", "rofi", "starship", "hyprlock", "plugins", "fonts", "keybinds", "glyphs"],
     )
 
     # detech menu <menu_name>
@@ -95,6 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
             "rofi-layout",
             "starship",
             "hyprlock",
+            "plugins",
             "files",
             "software",
             "glyphs",
@@ -147,6 +160,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "rofi_layout": appearance.get("rofi_layout", "grid-cards"),
             "starship_preset": appearance.get("starship_preset", "tokyo-pill"),
             "hyprlock_layout": appearance.get("hyprlock_layout", "minimal-clock"),
+            "plugin_preset": ctx.get("plugins", {}).get("preset", "minimal-expo"),
             "icon_theme": appearance.get("icon_theme", theme_data.get("icon_theme", "Papirus-Dark")),
             "font_mono": fonts["mono"],
             "font_sans": fonts["sans"],
@@ -180,6 +194,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             update_state(starship_preset=val)
         elif t == "hyprlock":
             update_state(hyprlock_layout=val)
+        elif t == "plugins":
+            update_state(plugin_preset=val)
         elif t == "icon":
             update_state(icon_theme=val)
         elif t == "wallpaper":
@@ -220,6 +236,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif cat == "hyprlock":
             for item in list_hyprlock_layouts():
                 print(f"{item['id']:<20} — {item.get('name', '')}")
+        elif cat == "plugins":
+            for item in list_plugin_presets():
+                print(f"{item['id']:<20} — {item.get('name', '')} ({item.get('description', '')})")
         elif cat == "fonts":
             for item in get_nerd_font_status_list():
                 status = "installed" if item["installed"] else "available"
@@ -256,6 +275,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             open_starship_menu()
         elif m == "hyprlock":
             open_hyprlock_layout_menu()
+        elif m == "plugins":
+            open_plugins_menu()
         elif m == "files":
             open_file_browser()
         elif m == "software":
