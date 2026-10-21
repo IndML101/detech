@@ -22,9 +22,12 @@ FREEBSD_PACKAGES="
     hypridle
     hyprpaper
     waybar
-    rofi-wayland
+    rofi
     kitty
     starship
+    neofetch
+    playerctl
+    curl
     dunst
     wl-clipboard
     cliphist
@@ -35,8 +38,14 @@ FREEBSD_PACKAGES="
     papirus-icon-theme
     qt5ct
     qt6ct
-    py311-pillow
+    python312
+    py312-pillow
 "
+
+PYTHON_BIN="python3.12"
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
+fi
 
 echo "========================================================"
 echo "  DETech — FreeBSD Hyprland Desktop Environment Setup"
@@ -84,13 +93,34 @@ for lua_file in "$REPO_ROOT"/configs/lua/*.lua; do
     fi
 done
 
-echo "[4/4] Installing DETech Python package and compiling initial configs..."
+echo "[4/4] Installing DETech Python 3.12 package and compiling initial configs..."
 if [ "$DRY_RUN" -eq 0 ]; then
-    python3 -m pip install --user -e "$REPO_ROOT" || true
-    PYTHONPATH="$REPO_ROOT/src" python3 -m detech.cli apply --no-reload
+    if command -v python3.12 >/dev/null 2>&1; then
+        PYTHON_BIN="python3.12"
+    fi
+    "$PYTHON_BIN" -m pip install --user --break-system-packages -e "$REPO_ROOT" 2>/dev/null \
+        || "$PYTHON_BIN" -m pip install --user -e "$REPO_ROOT" 2>/dev/null \
+        || true
+    mkdir -p "$HOME/.local/bin"
+    if [ ! -x "$HOME/.local/bin/detech" ]; then
+        cat > "$HOME/.local/bin/detech" <<EOF
+#!/bin/sh
+PYTHONPATH="$REPO_ROOT/src\${PYTHONPATH:+:\$PYTHONPATH}" exec $PYTHON_BIN -m detech.cli "\$@"
+EOF
+        chmod +x "$HOME/.local/bin/detech"
+        echo "  -> Installed CLI launcher $HOME/.local/bin/detech (using $PYTHON_BIN)"
+    fi
+    PYTHONPATH="$REPO_ROOT/src" "$PYTHON_BIN" -m detech.cli apply --no-reload
+    SHELL_INIT_LINE='[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh" ] && . "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh"'
+    for rc_file in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.shrc"; do
+        if [ -f "$rc_file" ] && ! grep -q "detech/shell-init.sh" "$rc_file" 2>/dev/null; then
+            printf "\n# DETech Neofetch & Starship Shell Hook\n%s\n" "$SHELL_INIT_LINE" >> "$rc_file"
+            echo "  -> Added DETech shell hook (Neofetch + Starship) to $rc_file"
+        fi
+    done
 else
-    echo "[dry-run] python3 -m pip install --user -e $REPO_ROOT"
-    echo "[dry-run] PYTHONPATH=$REPO_ROOT/src python3 -m detech.cli apply --no-reload"
+    echo "[dry-run] $PYTHON_BIN -m pip install --user -e $REPO_ROOT"
+    echo "[dry-run] PYTHONPATH=$REPO_ROOT/src $PYTHON_BIN -m detech.cli apply --no-reload"
 fi
 
 echo ""

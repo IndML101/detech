@@ -36,20 +36,22 @@ flowchart TD
         GlyphPicker["Emoji / NerdFont Glyph / Icon / File Picker"]
     end
 
-    subgraph FreeBSDLayer["FreeBSD OS Abstraction (src/detech/freebsd)"]
+    subgraph FreeBSDLayer["FreeBSD OS & Widget Abstraction (src/detech/freebsd)"]
         Audio["Audio (mixer / PipeWire wpctl)"]
         Backlight["Display (FreeBSD backlight)"]
-        Power["Power & ACPI (sysctl hw.acpi / acpiconf / seatd)"]
+        Power["Power, ACPI & ZFS (sysctl hw.acpi / zpool / acpiconf)"]
         Pkg["Packages (FreeBSD pkg query/install)"]
+        Widgets["Desktop Widgets (Weather, Calendar, ifconfig Net, MPRIS, Dunst DND, Uptime, Cliphist)"]
     end
 
     subgraph OutputLayer["Generated Native Configs (~/.config)"]
         Hypr["hypr/ (hyprland.conf, hyprlock.conf, hypridle.conf, hyprpaper.conf)"]
-        Waybar["waybar/ (10-20 Layouts: config.jsonc + style.css)"]
-        Rofi["rofi/ (10-20 App Drawer Layouts + Menu Themes .rasi)"]
+        Waybar["waybar/ (15 Layouts: config.jsonc + style.css + Tray & Widgets)"]
+        Rofi["rofi/ (15 App Drawer Layouts + Menu Themes .rasi)"]
         Kitty["kitty/ (kitty.conf + theme.conf)"]
-        Starship["starship/ (10-20 Prompt Presets .toml)"]
-        GTKQt["GTK-3/4, Qt5ct/Qt6ct, Kvantum, Dunst"]
+        Neofetch["neofetch/config.conf + detech/shell-init.sh"]
+        Starship["starship/ (15 Prompt Presets .toml)"]
+        GTKQt["GTK-2/3/4, Qt5ct/Qt6ct, Kvantum SVG/kvconfig, Dunst"]
     end
 
     UserLayer --> LuaLoader
@@ -284,6 +286,16 @@ Replaces Linux-only commands with native FreeBSD utilities and provides JSON out
   - `pkg info` for installed packages
   - Launches Kitty floating window running `doas pkg install <pkg>` or `doas pkg delete <pkg>` when chosen from the Rofi software picker.
 
+#### [NEW] widgets.py
+- Powers the Waybar desktop & FreeBSD telemetry widgets (`detech bsd widgets <widget> --json`):
+  - **Weather (`custom/weather`)**: Fetches live conditions and a 3-day forecast from `wttr.in` with local cache (`~/.cache/detech/weather_*.json`) and auto-IP geolocation or explicit city override.
+  - **Calendar (`custom/calendar`)**: Generates a Pango-formatted monthly calendar grid highlighting the current day in the active theme's accent color.
+  - **Notifications & DND (`custom/dnd` / `custom/notifications`)**: Queries `dunstctl` for waiting/history counts, recent notification summaries, DND state, and `close-all`/`history-pop`/`history-clear` actions.
+  - **FreeBSD Network (`custom/bsd-net`)**: Parses `ifconfig` output for active Wi-Fi SSID (`wlan0`) or Ethernet (`em0`) and IPv4 address.
+  - **MPRIS Media (`custom/media`)**: Queries and controls `playerctl` (`play-pause`, `next`, `prev`).
+  - **FreeBSD Kernel & Uptime (`custom/bsd-uptime`)**: Queries `sysctl kern.boottime` and `kern.osrelease`.
+  - **Clipboard (`custom/clipboard`)**: Queries and clears `cliphist` history.
+
 ---
 
 ### 5. Native Config Generators (`src/detech/generators/`)
@@ -299,17 +311,18 @@ Generates modular Hyprland configs under `~/.config/hypr/`:
 - `hyprlock.conf` (using active Nerd Font and theme colors), `hypridle.conf` (using FreeBSD `acpiconf`/`hyprctl dispatch dpms`), and `hyprpaper.conf`.
 
 #### [NEW] waybar.py
-Compiles the selected Waybar layout (`1..20`) with FreeBSD-native modules (`custom/bsd-battery`, `custom/bsd-audio`, `custom/bsd-temp`, `custom/bsd-pkg-updates`, `hyprland/workspaces`, `hyprland/window`) and injects the active theme CSS variables and **active Nerd Font** into `style.css`.
+Compiles the selected Waybar layout (`1..15`) with FreeBSD-native modules (`custom/bsd-battery`, `custom/bsd-audio`, `custom/bsd-temp`, `custom/bsd-load`, `custom/bsd-mem`, `custom/bsd-zfs`, `custom/bsd-pkg`, `custom/bsd-net`, `custom/bsd-uptime`, `custom/weather`, `custom/calendar`, `custom/media`, `custom/dnd`, `custom/clipboard`, `tray`, `hyprland/workspaces`, `hyprland/window`) and injects the active theme CSS variables and **active Nerd Font** into `style.css`.
 
 #### [NEW] rofi.py
-Generates `~/.config/rofi/colors.rasi`, `~/.config/rofi/fonts.rasi` (with active Nerd Font & size), `~/.config/rofi/config.rasi`, and links the active app drawer layout (`1..20`).
+Generates `~/.config/rofi/colors.rasi`, `~/.config/rofi/fonts.rasi` (with active Nerd Font & size), `~/.config/rofi/config.rasi` (synced with active `icon_theme`), and pre-compiles all 15 app drawer layouts (`rofi/layouts/*.rasi`).
 
 #### [NEW] terminal_shell.py
 - Generates `~/.config/kitty/detech-theme.conf` & `kitty.conf` (with active Nerd Font `font_family`, `bold_font`, `italic_font`, and `font_size`).
-- Generates `~/.config/starship.toml` from the selected Starship preset (`1..20`) with theme-matched palette and Nerd Font powerline/glyph symbols.
+- Generates `~/.config/starship.toml` from the selected Starship preset (`1..15`) with theme-matched palette and Nerd Font powerline/glyph symbols.
+- Generates `~/.config/neofetch/config.conf` (themed FreeBSD Beastie ASCII art, OS, kernel, uptime, packages, Hyprland WM, DETech theme, icon theme, Waybar/Starship presets, Nerd Font, CPU, GPU, memory, ZFS root pool) and `~/.config/detech/shell-init.sh` to auto-display Neofetch on interactive terminal launch.
 
 #### [NEW] gtk_qt_dunst.py
-- Generates `~/.config/gtk-3.0/settings.ini`, `~/.config/gtk-4.0/gtk.css` (custom color overrides and `gtk-font-name` set to active Nerd Font), `~/.config/qt5ct/qt5ct.conf` & `colors/detech.conf`, `~/.config/qt6ct/qt6ct.conf` & `colors/detech.conf`, and `~/.config/dunst/dunstrc`.
+- Generates `~/.config/gtk-2.0/gtkrc`, `~/.config/gtk-3.0/{settings.ini,gtk.css}`, `~/.config/gtk-4.0/{settings.ini,gtk.css}` (custom color overrides, `gtk-icon-theme-name`, and `gtk-font-name` set to active Nerd Font), `~/.config/qt5ct/qt5ct.conf` & `colors/detech.conf`, `~/.config/qt6ct/qt6ct.conf` & `colors/detech.conf`, `~/.config/Kvantum/DETech/DETech.{kvconfig,svg}`, and `~/.config/dunst/dunstrc` (with notification history, recursive icon lookup, and OSD progress bars).
 
 ---
 
@@ -329,8 +342,15 @@ Reads `keybinds.lua`, formats every shortcut as `[Category]  SUPER + Key  ⟶  D
 #### [NEW] theme_menu.py & wallpaper_menu.py
 - **Theme Picker (`detech menu themes`)**: Lists available themes with color swatches, switches theme, icon pack, GTK/Qt scheme, and wallpaper.
 - **Color Scheme Picker (`detech menu colors`)**: Switches palette independently of layout/wallpaper or toggles Static vs. Dynamic Wallpaper extraction.
-- **Icon Picker (`detech menu icons`)**: Switches GTK/Qt/Rofi icon themes (`Papirus-Dark`, `Papirus-Light`, `Tela-circle`, `Gruvbox-Plus-Dark`, `Catppuccin-SE`).
+- **Icon Picker (`detech menu icons`)**: Lists 12 curated icon themes (`Papirus-Dark`, `Papirus-Light`, `Papirus`, `Tela-circle-dark`, `Tela-circle`, `Catppuccin-SE`, `Gruvbox-Plus-Dark`, `TokyoNight-SE`, `Nordzy-dark`, `Qogir-dark`, `Breeze-Dark`, `Numix-Circle`, `Adwaita`) plus any custom icon packs auto-discovered in `/usr/local/share/icons` and `~/.local/share/icons`, syncing GTK-2/3/4, Qt5/6, Rofi, Dunst, and Neofetch.
 - **Wallpaper Picker (`detech menu wallpapers`)**: Scans `~/Pictures/Wallpapers` and theme wallpaper directories, renders Rofi icon previews (`\0icon\x1f/path/to/wall`), applies via `hyprpaper`, and triggers `color_engine` to update system-wide colors.
+
+#### [NEW] widget_menus.py
+Interactive Rofi popups for Waybar widgets:
+- **Interactive Calendar (`detech menu calendar` / `SUPER + C`)**: Month-by-month navigable calendar grid.
+- **Weather Forecast (`detech menu weather` / `SUPER + M`)**: Current conditions and 3-day forecast popup.
+- **Notification Center (`detech menu notifications` / `SUPER + O`)**: Browse `dunstctl` notification history, pop individual notifications, dismiss all, clear history, or toggle Do Not Disturb.
+- **Clipboard History (`detech menu clipboard` / `SUPER + Y`)**: Browse, decode, and copy `cliphist` entries via `wl-copy` or wipe clipboard history.
 
 #### [NEW] layout_menu.py
 Interactive switchers for:
@@ -366,7 +386,7 @@ To satisfy the 10–20 layout requirement while keeping the repository modular, 
 Idempotent POSIX shell script (`/bin/sh` compatible for FreeBSD):
 1. Verifies FreeBSD OS (`uname -s == FreeBSD`).
 2. Installs required FreeBSD packages via `pkg install`:
-   `hyprland`, `hyprlock`, `hypridle`, `hyprpaper`, `waybar`, `rofi-wayland`, `kitty`, `starship`, `dunst`, `wl-clipboard`, `seatd`, `dbus`, `fontconfig`, `nerd-fonts`, `py311-pillow`, `qt5ct`, `qt6ct`, `papirus-icon-theme`.
+   `hyprland`, `hyprlock`, `hypridle`, `hyprpaper`, `waybar`, `rofi`, `kitty`, `starship`, `dunst`, `wl-clipboard`, `seatd`, `dbus`, `fontconfig`, `nerd-fonts`, `python312`, `py312-pillow`, `qt5ct`, `qt6ct`, `papirus-icon-theme`.
 3. Checks `/etc/rc.conf` for `seatd_enable="YES"` and `dbus_enable="YES"`.
 4. Installs the `detech` CLI and seeds `~/.config/detech/` with the default Lua configurations.
 
