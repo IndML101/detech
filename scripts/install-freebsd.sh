@@ -65,15 +65,27 @@ run_cmd() {
 }
 
 if [ "$OS_NAME" = "FreeBSD" ]; then
-    echo "[1/4] Installing FreeBSD packages via pkg..."
-    # shellcheck disable=SC2086
-    run_cmd "$PRIV_CMD" pkg install -y $FREEBSD_PACKAGES
+    echo "[1/4] Checking and installing FreeBSD packages via pkg..."
+    MISSING_PACKAGES=""
+    for pkg_name in $FREEBSD_PACKAGES; do
+        if [ "$DRY_RUN" -eq 1 ] || ! pkg info -e "$pkg_name" >/dev/null 2>&1; then
+            MISSING_PACKAGES="$MISSING_PACKAGES $pkg_name"
+        fi
+    done
+    if [ -n "$MISSING_PACKAGES" ]; then
+        # shellcheck disable=SC2086
+        run_cmd "$PRIV_CMD" pkg install -y $MISSING_PACKAGES
+    else
+        echo "  -> All required FreeBSD packages are already installed."
+    fi
 
     echo "[2/4] Verifying FreeBSD /etc/rc.conf services (seatd & dbus)..."
     for svc in dbus seatd; do
         if ! sysrc -n "${svc}_enable" 2>/dev/null | grep -qi "YES"; then
             run_cmd "$PRIV_CMD" sysrc "${svc}_enable=YES"
             run_cmd "$PRIV_CMD" service "$svc" start || true
+        else
+            echo "  -> Service '$svc' is already enabled."
         fi
     done
 else
@@ -85,12 +97,8 @@ echo "[3/4] Seeding user declarative Lua configs into $CONFIG_DEST..."
 run_cmd mkdir -p "$CONFIG_DEST"
 for lua_file in "$REPO_ROOT"/configs/lua/*.lua; do
     base_name="$(basename "$lua_file")"
-    if [ ! -f "$CONFIG_DEST/$base_name" ]; then
-        run_cmd cp "$lua_file" "$CONFIG_DEST/$base_name"
-        echo "  -> Installed $CONFIG_DEST/$base_name"
-    else
-        echo "  -> Preserved existing $CONFIG_DEST/$base_name"
-    fi
+    run_cmd cp "$lua_file" "$CONFIG_DEST/$base_name"
+    echo "  -> Installed $CONFIG_DEST/$base_name"
 done
 
 echo "[4/4] Installing DETech Python 3.12 package and compiling initial configs..."
@@ -101,18 +109,23 @@ if [ "$DRY_RUN" -eq 0 ]; then
     "$PYTHON_BIN" -m pip install --user --break-system-packages -e "$REPO_ROOT" 2>/dev/null \
         || "$PYTHON_BIN" -m pip install --user -e "$REPO_ROOT" 2>/dev/null \
         || true
-    mkdir -p "$HOME/.local/bin"
-    if [ ! -x "$HOME/.local/bin/detech" ]; then
-        cat > "$HOME/.local/bin/detech" <<EOF
+    for bin_dir in "$HOME/.local/bin" "$HOME/bin"; do
+        mkdir -p "$bin_dir"
+        cat > "$bin_dir/detech" <<EOF
 #!/bin/sh
 PYTHONPATH="$REPO_ROOT/src\${PYTHONPATH:+:\$PYTHONPATH}" exec $PYTHON_BIN -m detech.cli "\$@"
 EOF
-        chmod +x "$HOME/.local/bin/detech"
-        echo "  -> Installed CLI launcher $HOME/.local/bin/detech (using $PYTHON_BIN)"
+        chmod +x "$bin_dir/detech"
+        echo "  -> Installed CLI launcher $bin_dir/detech (using $PYTHON_BIN)"
+    done
+    export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+    if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+        PYTHONPATH="$REPO_ROOT/src" "$PYTHON_BIN" -m detech.cli apply
+    else
+        PYTHONPATH="$REPO_ROOT/src" "$PYTHON_BIN" -m detech.cli apply --no-reload
     fi
-    PYTHONPATH="$REPO_ROOT/src" "$PYTHON_BIN" -m detech.cli apply --no-reload
     SHELL_INIT_LINE='[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh" ] && . "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh"'
-    for rc_file in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.shrc"; do
+    for rc_file in "$HOME/.profile" "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.shrc"; do
         if [ -f "$rc_file" ] && ! grep -q "detech/shell-init.sh" "$rc_file" 2>/dev/null; then
             printf "\n# DETech Neofetch & Starship Shell Hook\n%s\n" "$SHELL_INIT_LINE" >> "$rc_file"
             echo "  -> Added DETech shell hook (Neofetch + Starship) to $rc_file"

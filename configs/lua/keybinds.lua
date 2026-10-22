@@ -27,7 +27,7 @@ return {
         { mod = {mod, "SHIFT"}, key = "R", action = "exec", arg = "detech menu rofi-layout", category = "DETech", desc = "Switch Rofi App Drawer Layout (15 Presets)" },
         { mod = {mod, "SHIFT"}, key = "P", action = "exec", arg = "detech menu starship", category = "DETech", desc = "Switch Starship Prompt (15 Presets)" },
         { mod = {mod, "SHIFT"}, key = "G", action = "exec", arg = "detech menu plugins", category = "DETech", desc = "Switch Hyprland Plugin Preset" },
-        { mod = {mod}, key = "Tab", action = "hyprexpo:expo", arg = "toggle", category = "Workspace", desc = "Toggle Hyprexpo Workspace Overview" },
+        { mod = {mod}, key = "Tab", action = "workspace", arg = "e+1", category = "Workspace", desc = "Cycle Next Workspace" },
         { mod = {mod}, key = "E", action = "exec", arg = "detech menu files", category = "Launcher", desc = "Rofi File Browser" },
         { mod = {mod}, key = "S", action = "exec", arg = "detech menu software", category = "FreeBSD", desc = "FreeBSD pkg Software Picker" },
         { mod = {mod}, key = "Period", action = "exec", arg = "detech menu glyphs", category = "Launcher", desc = "Emoji, NerdFont Glyph & Symbol Picker" },
@@ -41,7 +41,7 @@ return {
         { mod = {mod}, key = "V", action = "togglefloating", arg = "", category = "Window", desc = "Toggle Floating Window" },
         { mod = {mod}, key = "F", action = "fullscreen", arg = "0", category = "Window", desc = "Toggle Fullscreen" },
         { mod = {mod}, key = "P", action = "pseudo", arg = "", category = "Window", desc = "Toggle Dwindle Pseudotile" },
-        { mod = {mod}, key = "J", action = "togglesplit", arg = "", category = "Window", desc = "Toggle Split Direction" },
+        { mod = {mod}, key = "J", action = "layoutmsg", arg = "togglesplit", category = "Window", desc = "Toggle Split Direction" },
 
         -- Focus Movement (Vim + Arrow Keys)
         { mod = {mod}, key = "Left", action = "movefocus", arg = "l", category = "Focus", desc = "Move Focus Left" },

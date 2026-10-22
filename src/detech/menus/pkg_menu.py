@@ -39,10 +39,18 @@ def build_software_menu_entries(installed_names: set[str] | None = None) -> list
         installed_names = {p["name"] for p in installed_pkgs}
 
     remote = search_remote_packages()
-    catalog = remote if remote else CURATED_FREEBSD_DESKTOP_PKGS
+    seen_names: set[str] = set()
+    catalog: list[dict[str, str]] = []
+    for item in [*CURATED_FREEBSD_DESKTOP_PKGS, *remote]:
+        nm = item.get("name", "")
+        if nm and nm not in seen_names:
+            seen_names.add(nm)
+            catalog.append(item)
+            if len(catalog) >= 500:
+                break
 
     rows: list[dict[str, Any]] = []
-    for pkg in catalog[:500]:
+    for pkg in catalog:
         name = pkg["name"]
         is_inst = name in installed_names
         badge = "✓ Installed (Remove)" if is_inst else "⬇ Install via pkg"

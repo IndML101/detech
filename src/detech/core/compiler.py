@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -62,11 +63,12 @@ def trigger_hot_reload(
         wallpaper = appearance.get("wallpaper")
         if wallpaper and Path(wallpaper).expanduser().is_file():
             wall_str = str(Path(wallpaper).expanduser())
-            subprocess.run(["hyprctl", "hyprpaper", "preload", wall_str], check=False, capture_output=True)
             subprocess.run(["hyprctl", "hyprpaper", "wallpaper", f",{wall_str}"], check=False, capture_output=True)
 
     if shutil.which("pkill"):
-        subprocess.run(["pkill", "-USR2", "waybar"], check=False, capture_output=True)
+        wb_res = subprocess.run(["pkill", "-USR2", "waybar"], check=False, capture_output=True)
+        if wb_res.returncode != 0 and os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
+            subprocess.run(["hyprctl", "dispatch", "exec", "waybar"], check=False, capture_output=True)
         subprocess.run(["pkill", "-USR1", "kitty"], check=False, capture_output=True)
 
     if shutil.which("dunstctl"):

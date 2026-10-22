@@ -22,3 +22,4 @@ env/
 # Editor / OS
 .DS_Store
 *.swp
+*.core

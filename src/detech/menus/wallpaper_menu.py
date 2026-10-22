@@ -23,6 +23,9 @@ def discover_wallpapers(extra_dirs: list[Path] | None = None) -> list[Path]:
     search_dirs.append(home_pics)
     search_dirs.append(get_presets_dir() / "wallpapers")
     search_dirs.append(get_presets_dir() / "themes")
+    search_dirs.append(Path("/usr/local/share/wallpapers"))
+    search_dirs.append(Path("/usr/local/share/backgrounds"))
+    search_dirs.append(Path("/usr/local/share/hypr"))
 
     found: list[Path] = []
     seen: set[Path] = set()
@@ -31,6 +34,8 @@ def discover_wallpapers(extra_dirs: list[Path] | None = None) -> list[Path]:
             continue
         for p in sorted(d.rglob("*")):
             if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS:
+                if d.name == "hypr" and p.name.startswith("lockdead"):
+                    continue
                 resolved = p.resolve()
                 if resolved not in seen:
                     seen.add(resolved)

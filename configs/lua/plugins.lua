@@ -3,7 +3,7 @@
 
 return {
     preset = "minimal-expo",
-    auto_reload_hyprpm = true,
+    auto_reload_hyprpm = false,
     enabled_plugins = {
         hyprbars = false,
         hyprexpo = true,
@@ -29,9 +29,6 @@ return {
         gap_size = 6,
         workspace_method = "center current",
         enable_gesture = true,
-        gesture_fingers = 3,
-        gesture_distance = 300,
-        gesture_positive = true,
     },
     hyprtrails = {
         color = "accent",

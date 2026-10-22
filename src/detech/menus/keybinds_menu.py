@@ -8,6 +8,7 @@ from typing import Any
 
 from detech.core.lua_loader import load_lua_file
 from detech.core.paths import resolve_lua_file
+from detech.generators.hyprland import normalize_keybind_action
 from detech.menus.rofi_runner import run_rofi_dmenu
 
 
@@ -23,8 +24,7 @@ def format_keybind_entries(binds_data: dict[str, Any] | None = None) -> list[dic
         combo = " + ".join([*mods, key]) if mods else key
         category = str(bind.get("category", "General"))
         desc = str(bind.get("desc", ""))
-        action = str(bind.get("action", "exec"))
-        arg = str(bind.get("arg", ""))
+        action, arg = normalize_keybind_action(str(bind.get("action", "exec")), str(bind.get("arg", "")))
 
         label = f"[{category:<9}]  {combo:<22} ⟶  {desc}"
         items.append(
@@ -42,8 +42,7 @@ def format_keybind_entries(binds_data: dict[str, Any] | None = None) -> list[dic
 
 def build_hyprctl_dispatch_command(entry: dict[str, str]) -> list[str]:
     """Build `hyprctl dispatch <action> <arg>` for a selected keybind entry."""
-    action = entry["action"]
-    arg = entry.get("arg", "")
+    action, arg = normalize_keybind_action(entry["action"], entry.get("arg", ""))
     if arg:
         return ["hyprctl", "dispatch", action, arg]
     return ["hyprctl", "dispatch", action]

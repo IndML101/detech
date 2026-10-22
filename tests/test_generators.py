@@ -71,6 +71,21 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     assert (out_dir / "hypr" / "hypridle.conf").is_file()
     assert "acpiconf -s 3" in (out_dir / "hypr" / "hypridle.conf").read_text(encoding="utf-8")
 
+    hl_text = (out_dir / "hypr" / "hyprland.conf").read_text(encoding="utf-8")
+    assert "pseudotile" not in hl_text
+    assert "windowrulev2" not in hl_text
+    assert "windowrule = float on, match:class ^(pavucontrol|qt5ct|qt6ct|nwg-look)$" in hl_text
+    assert "layerrule = blur on, match:namespace rofi" in hl_text
+    assert "layerrule = ignore_alpha 0, match:namespace rofi" in hl_text
+
+    kb_text = (out_dir / "hypr" / "detech-keybinds.conf").read_text(encoding="utf-8")
+    assert "layoutmsg, togglesplit" in kb_text
+    assert "hyprexpo:expo" not in kb_text
+
+    plug_default = (out_dir / "hypr" / "detech-plugins.conf").read_text(encoding="utf-8")
+    assert "gesture = 3, horizontal, workspace" in plug_default
+    assert "gesture_fingers" not in plug_default
+
     # Verify active Waybar JSONC is valid JSON after stripping header comment
     wb_lines = (out_dir / "waybar" / "config.jsonc").read_text(encoding="utf-8").splitlines()
     wb_json = json.loads("\n".join(wb_lines[1:]))

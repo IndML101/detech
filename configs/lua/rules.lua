@@ -2,14 +2,14 @@
 
 return {
     window_rules = {
-        { rule = "float", match = "class:^(pavucontrol|qt5ct|qt6ct|nwg-look)$" },
-        { rule = "float", match = "title:^(DETech Package Installer)$" },
-        { rule = "size 900 600", match = "title:^(DETech Package Installer)$" },
-        { rule = "center", match = "title:^(DETech Package Installer)$" },
+        { rule = "float on", match = "match:class ^(pavucontrol|qt5ct|qt6ct|nwg-look)$" },
+        { rule = "float on", match = "match:title ^(DETech Package Installer)$" },
+        { rule = "size 900 600", match = "match:title ^(DETech Package Installer)$" },
+        { rule = "center on", match = "match:title ^(DETech Package Installer)$" },
     },
     layer_rules = {
-        { rule = "blur", target = "rofi" },
-        { rule = "ignorezero", target = "rofi" },
-        { rule = "blur", target = "waybar" },
+        { rule = "blur on", target = "match:namespace rofi" },
+        { rule = "ignore_alpha 0", target = "match:namespace rofi" },
+        { rule = "blur on", target = "match:namespace waybar" },
     },
 }
