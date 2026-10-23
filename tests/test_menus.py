@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from detech.menus.font_menu import build_font_menu_entries
 from detech.menus.glyph_emoji_menu import format_glyph_entries
-from detech.menus.keybinds_menu import build_hyprctl_dispatch_command, format_keybind_entries
+from detech.menus.keybinds_menu import (
+    build_hyprctl_dispatch_command,
+    build_hyprctl_lua_dispatch_command,
+    format_keybind_entries,
+)
 from detech.menus.pkg_menu import build_software_menu_entries
 from detech.menus.theme_menu import build_theme_menu_entries
 
@@ -15,6 +19,11 @@ def test_keybinds_menu_formatting_and_dispatch() -> None:
     fonts_bind = next(e for e in entries if "detech menu fonts" in e["arg"])
     assert "SUPER + SHIFT + F" in fonts_bind["combo"]
     assert build_hyprctl_dispatch_command(fonts_bind) == ["hyprctl", "dispatch", "exec", "detech menu fonts"]
+    assert build_hyprctl_lua_dispatch_command(fonts_bind) == [
+        "hyprctl",
+        "dispatch",
+        'hl.dsp.exec_cmd("detech menu fonts")',
+    ]
 
 
 def test_font_and_theme_and_glyph_menus() -> None:

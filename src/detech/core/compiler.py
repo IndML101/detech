@@ -59,7 +59,17 @@ def trigger_hot_reload(
     appearance = context.get("config", {}).get("appearance", {})
 
     if shutil.which("hyprctl"):
-        subprocess.run(["hyprctl", "reload"], check=False, capture_output=True)
+        probe = subprocess.run(
+            ["hyprctl", "dispatch", "hl.dsp.no_op()"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if "Invalid dispatcher" in (probe.stdout or ""):
+            subprocess.run(["hyprctl", "reload", "full-reset"], check=False, capture_output=True)
+        else:
+            subprocess.run(["hyprctl", "reload"], check=False, capture_output=True)
+
         wallpaper = appearance.get("wallpaper")
         if wallpaper and Path(wallpaper).expanduser().is_file():
             wall_str = str(Path(wallpaper).expanduser())
@@ -68,7 +78,14 @@ def trigger_hot_reload(
     if shutil.which("pkill"):
         wb_res = subprocess.run(["pkill", "-USR2", "waybar"], check=False, capture_output=True)
         if wb_res.returncode != 0 and os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
-            subprocess.run(["hyprctl", "dispatch", "exec", "waybar"], check=False, capture_output=True)
+            dsp_res = subprocess.run(
+                ["hyprctl", "dispatch", 'hl.dsp.exec_cmd("waybar")'],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if "Invalid dispatcher" in (dsp_res.stdout or ""):
+                subprocess.run(["hyprctl", "dispatch", "exec", "waybar"], check=False, capture_output=True)
         subprocess.run(["pkill", "-USR1", "kitty"], check=False, capture_output=True)
 
     if shutil.which("dunstctl"):

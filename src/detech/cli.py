@@ -449,6 +449,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 zfs_info = get_zfs_status()
                 print(format_waybar_json(zfs_info) if args.json else zfs_info["text"])
                 return 0
+            if args.action == "logout" and shutil.which("hyprctl"):
+                res = subprocess.run(
+                    ["hyprctl", "dispatch", "hl.dsp.exit()"],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                if "Invalid dispatcher" not in (res.stdout or ""):
+                    return 0
             cmd = build_power_command(args.action, privilege_cmd=fbsd.get("privilege_cmd", "doas"))
             subprocess.run(cmd, check=False)
             return 0

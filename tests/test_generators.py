@@ -63,13 +63,36 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     result = compile_all(output_dir=out_dir, state_path=state_file, reload_daemons=False)
     assert len(result["written_files"]) >= 80
 
-    # Verify Hyprland configs
+    # Verify Hyprland configs (both native 0.56/0.57+ .lua and legacy .conf fallbacks)
+    assert (out_dir / "hypr" / "hyprland.lua").is_file()
+    assert (out_dir / "hypr" / "detech-colors.lua").is_file()
+    assert (out_dir / "hypr" / "detech-keybinds.lua").is_file()
+    assert (out_dir / "hypr" / "detech-plugins.lua").is_file()
     assert (out_dir / "hypr" / "hyprland.conf").is_file()
     assert (out_dir / "hypr" / "detech-keybinds.conf").is_file()
     assert (out_dir / "hypr" / "detech-plugins.conf").is_file()
     assert (out_dir / "hypr" / "hyprlock.conf").is_file()
     assert (out_dir / "hypr" / "hypridle.conf").is_file()
     assert "acpiconf -s 3" in (out_dir / "hypr" / "hypridle.conf").read_text(encoding="utf-8")
+    assert "hl.dsp.dpms" in (out_dir / "hypr" / "hypridle.conf").read_text(encoding="utf-8")
+
+    hl_lua_text = (out_dir / "hypr" / "hyprland.lua").read_text(encoding="utf-8")
+    assert 'local colors = require("detech-colors")' in hl_lua_text
+    assert 'hl.on("hyprland.start", function()' in hl_lua_text
+    assert "hl.window_rule({" in hl_lua_text
+    assert "hl.layer_rule({" in hl_lua_text
+    assert 'require("detech-keybinds")' in hl_lua_text
+    assert 'require("detech-plugins")' in hl_lua_text
+
+    kb_lua_text = (out_dir / "hypr" / "detech-keybinds.lua").read_text(encoding="utf-8")
+    assert "hl.bind(" in kb_lua_text
+    assert 'hl.dsp.layout("togglesplit")' in kb_lua_text
+    assert "hl.dsp.window.drag()" in kb_lua_text
+    assert "hl.dsp.window.resize()" in kb_lua_text
+
+    plug_lua_default = (out_dir / "hypr" / "detech-plugins.lua").read_text(encoding="utf-8")
+    assert "hl.gesture({" in plug_lua_default
+    assert 'action = "workspace"' in plug_lua_default
 
     hl_text = (out_dir / "hypr" / "hyprland.conf").read_text(encoding="utf-8")
     assert "pseudotile" not in hl_text

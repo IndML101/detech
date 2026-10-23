@@ -19,9 +19,9 @@ return {
         bar_part_of_window = true,
         bar_precedence_over_border = true,
         buttons = {
-            { button_size = 12, col = "urgent", cmd = "hyprctl dispatch killactive" },
-            { button_size = 12, col = "warning", cmd = "hyprctl dispatch togglefloating" },
-            { button_size = 12, col = "accent", cmd = "hyprctl dispatch fullscreen 1" },
+            { button_size = 12, col = "urgent", cmd = "hyprctl dispatch 'hl.dsp.window.close()'" },
+            { button_size = 12, col = "warning", cmd = "hyprctl dispatch 'hl.dsp.window.float({ action = \"toggle\" })'" },
+            { button_size = 12, col = "accent", cmd = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\", action = \"toggle\" })'" },
         },
     },
     hyprexpo = {
