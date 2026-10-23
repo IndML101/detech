@@ -36,3 +36,18 @@ def test_load_all_default_repo_lua_configs() -> None:
     assert configs["config"]["fonts"]["mono"] == "JetBrainsMono Nerd Font"
     assert configs["freebsd"]["os"] == "FreeBSD"
     assert len(configs["keybinds"]["binds"]) >= 25
+
+
+def test_pure_lua_parser_preserves_unicode_and_nerd_fonts() -> None:
+    lua_src = """
+    return {
+        prompt = " ~/detech  main ❯",
+        clock = " {:%H:%M}",
+        symbols = "󱎫 󰥔   󰁔",
+    }
+    """
+    parsed = load_lua_string(lua_src, use_lupa=False)
+    assert parsed["prompt"] == " ~/detech  main ❯"
+    assert parsed["clock"] == " {:%H:%M}"
+    assert parsed["symbols"] == "󱎫 󰥔   󰁔"
+

@@ -105,6 +105,42 @@ class _Tokenizer:
         return tok
 
 
+def _decode_lua_string(val: str) -> str:
+    """Safely decode a quoted Lua string literal without corrupting UTF-8 characters."""
+    try:
+        import ast
+
+        return ast.literal_eval(val)
+    except Exception:
+        pass
+
+    inner = val[1:-1]
+    escape_map = {
+        "\\n": "\n",
+        "\\t": "\t",
+        "\\r": "\r",
+        "\\a": "\a",
+        "\\b": "\b",
+        "\\f": "\f",
+        "\\v": "\v",
+        "\\\\": "\\",
+        '\\"': '"',
+        "\\'": "'",
+    }
+
+    def _replace_escape(match: re.Match[str]) -> str:
+        seq = match.group(0)
+        if seq in escape_map:
+            return escape_map[seq]
+        if seq.startswith("\\x") and len(seq) == 4:
+            return chr(int(seq[2:], 16))
+        if seq.startswith("\\u") and len(seq) == 6:
+            return chr(int(seq[2:], 16))
+        return seq[1:]
+
+    return re.sub(r'\\(?:[abfnrtv\\\'"]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|.)', _replace_escape, inner)
+
+
 def _parse_lua_pure(source: str) -> Any:
     """Parse a declarative Lua module (with optional `local` variables and `return { ... }`)."""
     cleaned = _strip_lua_comments(source)
@@ -120,8 +156,7 @@ def _parse_lua_pure(source: str) -> Any:
             return parse_table()
         if kind == "string":
             toks.next()
-            inner = val[1:-1]
-            return bytes(inner, "utf-8").decode("unicode_escape")
+            return _decode_lua_string(val)
         if kind == "number":
             toks.next()
             return float(val) if "." in val else int(val)

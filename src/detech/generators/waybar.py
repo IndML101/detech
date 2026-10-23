@@ -374,7 +374,7 @@ def render_waybar_css(
         f"@define-color success {palette['success']};",
         "",
         "* {",
-        f'    font-family: "{fonts["mono"]}", "{fonts["sans"]}", sans-serif;',
+        f'    font-family: "{fonts["mono"]}", "{fonts["sans"]}", "Symbols Nerd Font", "Symbols Nerd Font Mono", "Font Awesome 7 Free", "Font Awesome 6 Free", sans-serif;',
         f"    font-size: {fonts['bar_size']}pt;",
         "    min-height: 0;",
         "}",
