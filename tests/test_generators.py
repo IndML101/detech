@@ -76,13 +76,26 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     assert "acpiconf -s 3" in (out_dir / "hypr" / "hypridle.conf").read_text(encoding="utf-8")
     assert "hl.dsp.dpms" in (out_dir / "hypr" / "hypridle.conf").read_text(encoding="utf-8")
 
+    # Verify Waybar launcher script and D-Bus readiness
+    wb_sh = out_dir / "hypr" / "launch-waybar.sh"
+    assert wb_sh.is_file()
+    wb_sh_text = wb_sh.read_text(encoding="utf-8")
+    assert "dbus-launch" in wb_sh_text
+    assert "exec waybar" in wb_sh_text
+
     hl_lua_text = (out_dir / "hypr" / "hyprland.lua").read_text(encoding="utf-8")
     assert 'local colors = require("detech-colors")' in hl_lua_text
     assert 'hl.on("hyprland.start", function()' in hl_lua_text
+    assert "launch-waybar.sh" in hl_lua_text
+    assert "dbus-update-activation-environment" in hl_lua_text
     assert "hl.window_rule({" in hl_lua_text
     assert "hl.layer_rule({" in hl_lua_text
     assert 'require("detech-keybinds")' in hl_lua_text
     assert 'require("detech-plugins")' in hl_lua_text
+
+    hl_conf_text = (out_dir / "hypr" / "hyprland.conf").read_text(encoding="utf-8")
+    assert "launch-waybar.sh" in hl_conf_text
+    assert "dbus-update-activation-environment" in hl_conf_text
 
     kb_lua_text = (out_dir / "hypr" / "detech-keybinds.lua").read_text(encoding="utf-8")
     assert "hl.bind(" in kb_lua_text

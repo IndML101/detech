@@ -662,6 +662,65 @@ def generate_hypr_configs(
     plugins_conf.write_text("\n".join(plug_lines) + "\n", encoding="utf-8")
     written.append(plugins_conf)
 
+    # 4. Waybar Launcher (`hypr/launch-waybar.sh`)
+    launch_waybar_sh = hypr_dir / "launch-waybar.sh"
+    launch_waybar_lines = [
+        "#!/bin/sh",
+        "# DETech Waybar Launcher with D-Bus & Hyprland session readiness check",
+        "",
+        "# 1. Ensure D-Bus session bus is available",
+        'if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then',
+        '    if [ -n "$XDG_RUNTIME_DIR" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then',
+        '        export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"',
+        "    else",
+        "        # Autolaunch user D-Bus daemon if none is running",
+        "        eval $(dbus-launch --sh-syntax 2>/dev/null)",
+        "    fi",
+        "fi",
+        "",
+        "# 2. Update D-Bus activation environment",
+        "if command -v dbus-update-activation-environment >/dev/null 2>&1; then",
+        "    dbus-update-activation-environment --all >/dev/null 2>&1 || true",
+        "fi",
+        "",
+        "# 3. Wait for Wayland display socket to become available (up to 3 seconds)",
+        'if [ -n "$WAYLAND_DISPLAY" ] && [ -n "$XDG_RUNTIME_DIR" ]; then',
+        "    max_wait=30",
+        "    count=0",
+        '    while [ ! -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ] && [ $count -lt $max_wait ]; do',
+        "        sleep 0.1",
+        "        count=$((count + 1))",
+        "    done",
+        "fi",
+        "",
+        "# 4. Wait for Hyprland IPC socket to become available (up to 3 seconds)",
+        'if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] && [ -n "$XDG_RUNTIME_DIR" ]; then',
+        "    max_wait=30",
+        "    count=0",
+        '    while [ ! -S "$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket.sock" ] && [ $count -lt $max_wait ]; do',
+        "        sleep 0.1",
+        "        count=$((count + 1))",
+        "    done",
+        "fi",
+        "",
+        "# 5. Launch Waybar, replacing this shell process",
+        'exec waybar "$@"',
+    ]
+    launch_waybar_sh.write_text("\n".join(launch_waybar_lines) + "\n", encoding="utf-8")
+    try:
+        launch_waybar_sh.chmod(0o755)
+    except OSError:
+        pass
+    written.append(launch_waybar_sh)
+
+    def _resolve_autostart_cmd(cmd_str: str) -> str:
+        s = str(cmd_str).strip()
+        if s == "waybar":
+            return str(launch_waybar_sh)
+        if s.startswith("waybar "):
+            return f"{launch_waybar_sh} {s[7:]}"
+        return s
+
     # 4a. Main hyprland.lua (Hyprland 0.56/0.57+ Native Lua Config)
     hyprland_lua = hypr_dir / "hyprland.lua"
     blur = appearance.get("blur", {})
@@ -711,8 +770,10 @@ def generate_hypr_configs(
             'hl.on("hyprland.start", function()',
         ]
     )
+    if not any("dbus-update-activation-environment" in str(c) for c in autostart):
+        hl_lua_lines.append('    hl.exec_cmd("dbus-update-activation-environment --all")')
     for cmd in autostart:
-        hl_lua_lines.append(f"    hl.exec_cmd({_lua_str(str(cmd))})")
+        hl_lua_lines.append(f"    hl.exec_cmd({_lua_str(_resolve_autostart_cmd(cmd))})")
     hl_lua_lines.extend(
         [
             "end)",
@@ -824,8 +885,10 @@ def generate_hypr_configs(
         )
 
     hl_lines.extend(["", "# Autostart Daemons"])
+    if not any("dbus-update-activation-environment" in str(c) for c in autostart):
+        hl_lines.append("exec-once = dbus-update-activation-environment --all")
     for cmd in autostart:
-        hl_lines.append(f"exec-once = {cmd}")
+        hl_lines.append(f"exec-once = {_resolve_autostart_cmd(cmd)}")
 
     hl_lines.extend(
         [

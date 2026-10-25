@@ -38,7 +38,7 @@ def compile_all(
     written_files.extend(generate_gtk_qt_dunst_configs(context, theme_data, palette, fonts, target_root))
 
     if reload_daemons:
-        trigger_hot_reload(context, theme_data, fonts)
+        trigger_hot_reload(context, theme_data, fonts, target_root=target_root)
 
     return {
         "context": context,
@@ -54,6 +54,7 @@ def trigger_hot_reload(
     context: dict[str, Any],
     theme_data: dict[str, Any],
     fonts: dict[str, Any],
+    target_root: Path | None = None,
 ) -> None:
     """Trigger non-disruptive live reloads for Hyprland, Waybar, Kitty, Hyprpaper, and GTK."""
     appearance = context.get("config", {}).get("appearance", {})
@@ -78,14 +79,19 @@ def trigger_hot_reload(
     if shutil.which("pkill"):
         wb_res = subprocess.run(["pkill", "-USR2", "waybar"], check=False, capture_output=True)
         if wb_res.returncode != 0 and os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
+            wb_cmd = "waybar"
+            config_dir = target_root or get_xdg_config_dir()
+            wb_launcher = config_dir / "hypr" / "launch-waybar.sh"
+            if wb_launcher.is_file():
+                wb_cmd = str(wb_launcher)
             dsp_res = subprocess.run(
-                ["hyprctl", "dispatch", 'hl.dsp.exec_cmd("waybar")'],
+                ["hyprctl", "dispatch", f'hl.dsp.exec_cmd("{wb_cmd}")'],
                 check=False,
                 capture_output=True,
                 text=True,
             )
             if "Invalid dispatcher" in (dsp_res.stdout or ""):
-                subprocess.run(["hyprctl", "dispatch", "exec", "waybar"], check=False, capture_output=True)
+                subprocess.run(["hyprctl", "dispatch", "exec", wb_cmd], check=False, capture_output=True)
         subprocess.run(["pkill", "-USR1", "kitty"], check=False, capture_output=True)
 
     if shutil.which("dunstctl"):
