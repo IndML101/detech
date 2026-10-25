@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -186,6 +187,522 @@ def render_kvantum_svg(palette: dict[str, str]) -> str:
 """
 
 
+def render_gtk2_gtkrc(
+    gtk_theme: str,
+    icon_theme: str,
+    font_str: str,
+    cursor_theme: str,
+    cursor_size: int,
+    palette: dict[str, str],
+) -> str:
+    """Render GTK-2.0 gtkrc with system-wide dark palette, color-scheme, and fallback styling."""
+    bg_pri = palette["bg_primary"]
+    bg_sec = palette["bg_secondary"]
+    bg_ter = palette["bg_tertiary"]
+    fg_pri = palette["fg_primary"]
+    fg_muted = palette["fg_muted"]
+    accent = palette["accent"]
+    bdr = palette.get("border_inactive", bg_ter)
+
+    color_scheme = (
+        f"base_color:{bg_sec}\\n"
+        f"bg_color:{bg_pri}\\n"
+        f"tooltip_bg_color:{bg_sec}\\n"
+        f"selected_bg_color:{accent}\\n"
+        f"text_color:{fg_pri}\\n"
+        f"fg_color:{fg_pri}\\n"
+        f"tooltip_fg_color:{fg_pri}\\n"
+        f"selected_fg_color:{bg_pri}"
+    )
+
+    lines = [
+        "# DETech GTK-2.0 Dark Configuration",
+        f'gtk-theme-name="{gtk_theme}"',
+        f'gtk-icon-theme-name="{icon_theme}"',
+        f'gtk-font-name="{font_str}"',
+        f'gtk-cursor-theme-name="{cursor_theme}"',
+        f"gtk-cursor-theme-size={cursor_size}",
+        f'gtk-color-scheme="{color_scheme}"',
+        "",
+        'style "detech-dark" {',
+        f'    base[NORMAL] = "{bg_sec}"',
+        f'    base[PRELIGHT] = "{bg_ter}"',
+        f'    base[ACTIVE] = "{accent}"',
+        f'    base[SELECTED] = "{accent}"',
+        f'    base[INSENSITIVE] = "{bg_pri}"',
+        "",
+        f'    bg[NORMAL] = "{bg_pri}"',
+        f'    bg[PRELIGHT] = "{bg_sec}"',
+        f'    bg[ACTIVE] = "{bg_sec}"',
+        f'    bg[SELECTED] = "{accent}"',
+        f'    bg[INSENSITIVE] = "{bg_pri}"',
+        "",
+        f'    fg[NORMAL] = "{fg_pri}"',
+        f'    fg[PRELIGHT] = "{fg_pri}"',
+        f'    fg[ACTIVE] = "{fg_pri}"',
+        f'    fg[SELECTED] = "{bg_pri}"',
+        f'    fg[INSENSITIVE] = "{fg_muted}"',
+        "",
+        f'    text[NORMAL] = "{fg_pri}"',
+        f'    text[PRELIGHT] = "{fg_pri}"',
+        f'    text[ACTIVE] = "{fg_pri}"',
+        f'    text[SELECTED] = "{bg_pri}"',
+        f'    text[INSENSITIVE] = "{fg_muted}"',
+        "}",
+        'class "GtkWidget" style "detech-dark"',
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def render_gtk_css(palette: dict[str, str]) -> str:
+    """Render a comprehensive GTK-3.0 / GTK-4.0 & Libadwaita dark theme CSS asset bundle."""
+    bg_pri = palette["bg_primary"]
+    bg_sec = palette["bg_secondary"]
+    bg_ter = palette["bg_tertiary"]
+    fg_pri = palette["fg_primary"]
+    fg_sec = palette["fg_secondary"]
+    fg_muted = palette["fg_muted"]
+    accent = palette["accent"]
+    accent_alt = palette["accent_alt"]
+    urgent = palette["urgent"]
+    success = palette.get("success", "#52b788")
+    warning = palette.get("warning", "#f4a261")
+    bdr = palette.get("border_inactive", bg_ter)
+
+    lines = [
+        "/* DETech Dynamic GTK-3/4 & Libadwaita Complete Dark Theme Color & Widget Sheet */",
+        f"@define-color accent_bg_color {accent};",
+        f"@define-color accent_fg_color {bg_pri};",
+        f"@define-color accent_color {accent};",
+        f"@define-color window_bg_color {bg_pri};",
+        f"@define-color window_fg_color {fg_pri};",
+        f"@define-color view_bg_color {bg_sec};",
+        f"@define-color view_fg_color {fg_pri};",
+        f"@define-color headerbar_bg_color {bg_sec};",
+        f"@define-color headerbar_fg_color {fg_pri};",
+        f"@define-color headerbar_border_color {bdr};",
+        f"@define-color headerbar_backdrop_color {bg_pri};",
+        f"@define-color card_bg_color {bg_ter};",
+        f"@define-color card_fg_color {fg_pri};",
+        f"@define-color dialog_bg_color {bg_pri};",
+        f"@define-color dialog_fg_color {fg_pri};",
+        f"@define-color popover_bg_color {bg_sec};",
+        f"@define-color popover_fg_color {fg_pri};",
+        f"@define-color sidebar_bg_color {bg_sec};",
+        f"@define-color sidebar_fg_color {fg_pri};",
+        f"@define-color destructive_bg_color {urgent};",
+        f"@define-color destructive_fg_color {bg_pri};",
+        f"@define-color success_bg_color {success};",
+        f"@define-color warning_bg_color {warning};",
+        f"@define-color theme_bg_color {bg_pri};",
+        f"@define-color theme_fg_color {fg_pri};",
+        f"@define-color theme_base_color {bg_sec};",
+        f"@define-color theme_text_color {fg_pri};",
+        f"@define-color theme_selected_bg_color {accent};",
+        f"@define-color theme_selected_fg_color {bg_pri};",
+        f"@define-color borders {bdr};",
+        f"@define-color scrollbar_slider_color {bg_ter};",
+        f"@define-color scrollbar_slider_hover_color {accent};",
+        "",
+        "/* Base Windows, Dialogs, Surfaces */",
+        "window, dialog, messagedialog, .background, window.background {",
+        "    background-color: @window_bg_color;",
+        "    color: @window_fg_color;",
+        "}",
+        "",
+        "/* Views, Text Editors, Treeviews, Lists */",
+        "view, textview, textview text, iconview, .view {",
+        "    background-color: @view_bg_color;",
+        "    color: @view_fg_color;",
+        "}",
+        "",
+        "/* Text Inputs, Search Bars, Entries */",
+        "entry, searchbar entry, spinbutton {",
+        "    background-color: @view_bg_color;",
+        "    color: @theme_text_color;",
+        "    border: 1px solid @borders;",
+        "    border-radius: 6px;",
+        "    padding: 6px 10px;",
+        "}",
+        "entry:focus, searchbar entry:focus, spinbutton:focus {",
+        "    border-color: @accent_color;",
+        "}",
+        "",
+        "/* Buttons & Actions */",
+        "button {",
+        "    background-color: @theme_base_color;",
+        "    color: @theme_text_color;",
+        "    border: 1px solid @borders;",
+        "    border-radius: 6px;",
+        "    padding: 6px 12px;",
+        "}",
+        "button:hover {",
+        "    background-color: @card_bg_color;",
+        "    border-color: @accent_color;",
+        "}",
+        "button:checked, button:active, button.suggested-action {",
+        "    background-color: @accent_bg_color;",
+        "    color: @accent_fg_color;",
+        "    border-color: @accent_color;",
+        "}",
+        "button.destructive-action {",
+        "    background-color: @destructive_bg_color;",
+        "    color: @destructive_fg_color;",
+        "}",
+        "",
+        "/* Headerbars, Titlebars, Toolbars */",
+        "headerbar, .titlebar, toolbar {",
+        "    background-color: @headerbar_bg_color;",
+        "    color: @headerbar_fg_color;",
+        "    border-bottom: 1px solid @headerbar_border_color;",
+        "}",
+        "headerbar:backdrop, .titlebar:backdrop {",
+        "    background-color: @headerbar_backdrop_color;",
+        "}",
+        "",
+        "/* Sidebars & Lists */",
+        ".sidebar, placessidebar, stacksidebar, list, row {",
+        "    background-color: @sidebar_bg_color;",
+        "    color: @sidebar_fg_color;",
+        "}",
+        "row:selected, list > row:selected, treeview.view:selected {",
+        "    background-color: @accent_bg_color;",
+        "    color: @accent_fg_color;",
+        "}",
+        "",
+        "/* Selection & Focus */",
+        "selection, :selected, *:selected {",
+        "    background-color: @accent_bg_color;",
+        "    color: @accent_fg_color;",
+        "}",
+        "",
+        "/* Notebook Tabs */",
+        "notebook, notebook > stack {",
+        "    background-color: @window_bg_color;",
+        "}",
+        "notebook > header {",
+        "    background-color: @view_bg_color;",
+        "    border-color: @borders;",
+        "}",
+        "notebook > header tab {",
+        "    background-color: @view_bg_color;",
+        "    color: @theme_text_color;",
+        "    padding: 6px 14px;",
+        "}",
+        "notebook > header tab:checked {",
+        "    background-color: @window_bg_color;",
+        "    border-bottom: 2px solid @accent_color;",
+        "    color: @accent_color;",
+        "}",
+        "",
+        "/* Popovers, Menus, Dropdowns */",
+        "popover, popover.background, menu, menubar {",
+        "    background-color: @popover_bg_color;",
+        "    color: @popover_fg_color;",
+        "    border: 1px solid @borders;",
+        "    border-radius: 8px;",
+        "}",
+        "menuitem:hover, modelbutton:hover {",
+        "    background-color: @accent_bg_color;",
+        "    color: @accent_fg_color;",
+        "}",
+        "",
+        "/* Tooltips */",
+        "tooltip, tooltip.background {",
+        "    background-color: @popover_bg_color;",
+        "    color: @popover_fg_color;",
+        "    border: 1px solid @accent_color;",
+        "    border-radius: 8px;",
+        "    padding: 6px 10px;",
+        "}",
+        "",
+        "/* Scrollbars */",
+        "scrollbar slider {",
+        "    background-color: @scrollbar_slider_color;",
+        "    border-radius: 6px;",
+        "    min-width: 6px;",
+        "    min-height: 6px;",
+        "}",
+        "scrollbar slider:hover {",
+        "    background-color: @scrollbar_slider_hover_color;",
+        "}",
+        "",
+        "/* Progress Bars & Sliders */",
+        "progressbar progress, progressbar > trough > progress {",
+        "    background-color: @accent_color;",
+        "    border-radius: 4px;",
+        "}",
+        "progressbar trough, progressbar > trough {",
+        "    background-color: @view_bg_color;",
+        "    border: 1px solid @borders;",
+        "}",
+        "scale slider, scale > contents > trough > slider {",
+        "    background-color: @accent_color;",
+        "    border-radius: 50%;",
+        "}",
+        "scale highlight, scale > contents > trough > highlight {",
+        "    background-color: @accent_color;",
+        "}",
+        "scale trough, scale > contents > trough {",
+        "    background-color: @view_bg_color;",
+        "}",
+        "",
+        "/* Switches, Checkboxes & Radio */",
+        "check:checked, radio:checked, switch:checked {",
+        "    background-color: @accent_color;",
+        "    color: @accent_fg_color;",
+        "    border-color: @accent_color;",
+        "}",
+        "",
+        "/* Links & Accents */",
+        "link, link:link, *:link {",
+        "    color: @accent_color;",
+        "}",
+        f"link:visited, *:visited {{",
+        f"    color: {accent_alt};",
+        "}",
+        "separator {",
+        "    background-color: @borders;",
+        "}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def render_qt_colors_conf(palette: dict[str, str]) -> str:
+    """Render 21-role Qt5ct / Qt6ct detech.conf color scheme synced with primary/secondary and accent colors."""
+    c_fg = f"#ff{palette['fg_primary'].lstrip('#')}"
+    c_fg_muted = f"#ff{palette['fg_muted'].lstrip('#')}"
+    c_bg_pri = f"#ff{palette['bg_primary'].lstrip('#')}"
+    c_bg_sec = f"#ff{palette['bg_secondary'].lstrip('#')}"
+    c_bg_ter = f"#ff{palette['bg_tertiary'].lstrip('#')}"
+    c_border = f"#ff{palette.get('border_inactive', palette['bg_tertiary']).lstrip('#')}"
+    c_accent = f"#ff{palette['accent'].lstrip('#')}"
+    c_accent_alt = f"#ff{palette['accent_alt'].lstrip('#')}"
+
+    # Standard 21 QPalette roles:
+    # 0:WindowText, 1:Button, 2:Light, 3:Midlight, 4:Dark, 5:Mid, 6:Text, 7:BrightText,
+    # 8:ButtonText, 9:Base (secondary), 10:Window (primary), 11:Shadow, 12:Highlight (accent),
+    # 13:HighlightedText, 14:Link, 15:LinkVisited, 16:AlternateBase, 17:NoRole, 18:ToolTipBase,
+    # 19:ToolTipText, 20:PlaceholderText
+    active = [
+        c_fg,        # 0: WindowText
+        c_bg_sec,    # 1: Button
+        c_bg_ter,    # 2: Light
+        c_bg_sec,    # 3: Midlight
+        c_bg_pri,    # 4: Dark
+        c_border,    # 5: Mid
+        c_fg,        # 6: Text
+        "#ffffffff", # 7: BrightText
+        c_fg,        # 8: ButtonText
+        c_bg_sec,    # 9: Base
+        c_bg_pri,    # 10: Window
+        "#ff000000", # 11: Shadow
+        c_accent,    # 12: Highlight
+        c_bg_pri,    # 13: HighlightedText
+        c_accent,    # 14: Link
+        c_accent_alt,# 15: LinkVisited
+        c_bg_ter,    # 16: AlternateBase
+        c_fg,        # 17: NoRole
+        c_bg_sec,    # 18: ToolTipBase
+        c_fg,        # 19: ToolTipText
+        c_fg_muted,  # 20: PlaceholderText
+    ]
+
+    disabled = list(active)
+    disabled[0] = c_fg_muted
+    disabled[6] = c_fg_muted
+    disabled[8] = c_fg_muted
+    disabled[13] = c_fg_muted
+    disabled[17] = c_fg_muted
+    disabled[19] = c_fg_muted
+
+    return "\n".join(
+        [
+            "[ColorScheme]",
+            f"active_colors={', '.join(active)}",
+            f"disabled_colors={', '.join(disabled)}",
+            f"inactive_colors={', '.join(active)}",
+        ]
+    ) + "\n"
+
+
+def render_qt_qss(palette: dict[str, str]) -> str:
+    """Render a comprehensive Qt Style Sheet (QSS) enforcing dark background and accent colors."""
+    bg_pri = palette["bg_primary"]
+    bg_sec = palette["bg_secondary"]
+    bg_ter = palette["bg_tertiary"]
+    fg_pri = palette["fg_primary"]
+    fg_sec = palette["fg_secondary"]
+    accent = palette["accent"]
+    bdr = palette.get("border_inactive", bg_ter)
+
+    return f"""/* DETech Qt Dynamic Color & Dark Theme QSS */
+QWidget {{
+    background-color: {bg_pri};
+    color: {fg_pri};
+    selection-background-color: {accent};
+    selection-color: {bg_pri};
+}}
+
+QMainWindow, QDialog, QMessageBox {{
+    background-color: {bg_pri};
+    color: {fg_pri};
+}}
+
+QTextEdit, QPlainTextEdit, QLineEdit, QAbstractItemView, QListView, QTreeView, QTableView {{
+    background-color: {bg_sec};
+    color: {fg_pri};
+    selection-background-color: {accent};
+    selection-color: {bg_pri};
+    border: 1px solid {bdr};
+    border-radius: 4px;
+}}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
+    border: 1px solid {accent};
+}}
+
+QPushButton {{
+    background-color: {bg_sec};
+    color: {fg_pri};
+    border: 1px solid {bdr};
+    border-radius: 5px;
+    padding: 6px 14px;
+}}
+
+QPushButton:hover {{
+    background-color: {bg_ter};
+    border-color: {accent};
+}}
+
+QPushButton:pressed {{
+    background-color: {accent};
+    color: {bg_pri};
+}}
+
+QTabBar::tab {{
+    background-color: {bg_sec};
+    color: {fg_sec};
+    padding: 7px 14px;
+    border: 1px solid {bdr};
+    border-bottom: none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}}
+
+QTabBar::tab:selected {{
+    background-color: {bg_pri};
+    color: {accent};
+    border-bottom: 2px solid {accent};
+}}
+
+QTabBar::tab:hover:!selected {{
+    background-color: {bg_ter};
+}}
+
+QMenuBar {{
+    background-color: {bg_sec};
+    color: {fg_pri};
+    border-bottom: 1px solid {bdr};
+}}
+
+QMenuBar::item:selected {{
+    background-color: {accent};
+    color: {bg_pri};
+}}
+
+QMenu {{
+    background-color: {bg_sec};
+    color: {fg_pri};
+    border: 1px solid {bdr};
+    border-radius: 6px;
+    padding: 4px;
+}}
+
+QMenu::item {{
+    padding: 6px 24px;
+    border-radius: 4px;
+}}
+
+QMenu::item:selected {{
+    background-color: {accent};
+    color: {bg_pri};
+}}
+
+QScrollBar:vertical {{
+    background-color: {bg_pri};
+    width: 10px;
+    margin: 0;
+}}
+
+QScrollBar::handle:vertical {{
+    background-color: {bg_ter};
+    min-height: 20px;
+    border-radius: 5px;
+}}
+
+QScrollBar::handle:vertical:hover {{
+    background-color: {accent};
+}}
+
+QScrollBar:horizontal {{
+    background-color: {bg_pri};
+    height: 10px;
+    margin: 0;
+}}
+
+QScrollBar::handle:horizontal {{
+    background-color: {bg_ter};
+    min-width: 20px;
+    border-radius: 5px;
+}}
+
+QScrollBar::handle:horizontal:hover {{
+    background-color: {accent};
+}}
+
+QProgressBar {{
+    background-color: {bg_sec};
+    border: 1px solid {bdr};
+    border-radius: 4px;
+    text-align: center;
+    color: {fg_pri};
+}}
+
+QProgressBar::chunk {{
+    background-color: {accent};
+    border-radius: 3px;
+}}
+
+QSlider::groove:horizontal {{
+    height: 6px;
+    background-color: {bg_sec};
+    border-radius: 3px;
+}}
+
+QSlider::sub-page:horizontal {{
+    background-color: {accent};
+    border-radius: 3px;
+}}
+
+QSlider::handle:horizontal {{
+    background-color: {accent};
+    width: 14px;
+    margin-top: -4px;
+    margin-bottom: -4px;
+    border-radius: 7px;
+}}
+
+QToolTip {{
+    background-color: {bg_sec};
+    color: {fg_pri};
+    border: 1px solid {accent};
+    border-radius: 6px;
+    padding: 4px 8px;
+}}
+"""
+
+
 def generate_gtk_qt_dunst_configs(
     context: dict[str, Any],
     theme_data: dict[str, Any],
@@ -201,7 +718,7 @@ def generate_gtk_qt_dunst_configs(
     icon_theme = appearance.get("icon_theme") or theme_data.get("icon_theme", "Papirus-Dark")
     cursor_theme = appearance.get("cursor_theme") or theme_data.get("cursor_theme", "Bibata-Modern-Ice")
     cursor_size = appearance.get("cursor_size", 24)
-    kvantum_theme = theme_data.get("kvantum_theme", "DETech")
+    kvantum_theme = appearance.get("kvantum_theme") or "DETech"
     font_str = f"{fonts['sans']} {fonts['size']}"
 
     # 1. GTK-2.0 gtkrc
@@ -209,22 +726,23 @@ def generate_gtk_qt_dunst_configs(
     gtk2_dir.mkdir(parents=True, exist_ok=True)
     gtk2_rc = gtk2_dir / "gtkrc"
     gtk2_rc.write_text(
-        "\n".join(
-            [
-                "# DETech GTK-2.0 Configuration",
-                f'gtk-theme-name="{gtk_theme}"',
-                f'gtk-icon-theme-name="{icon_theme}"',
-                f'gtk-font-name="{font_str}"',
-                f'gtk-cursor-theme-name="{cursor_theme}"',
-                f"gtk-cursor-theme-size={cursor_size}",
-            ]
-        )
-        + "\n",
+        render_gtk2_gtkrc(gtk_theme, icon_theme, font_str, cursor_theme, cursor_size, palette),
         encoding="utf-8",
     )
     written.append(gtk2_rc)
 
     # 2. GTK-3.0 & GTK-4.0 settings.ini + complete gtk.css asset sheet
+    gtk_color_scheme = (
+        f"base_color:{palette['bg_secondary']};"
+        f"bg_color:{palette['bg_primary']};"
+        f"tooltip_bg_color:{palette['bg_secondary']};"
+        f"selected_bg_color:{palette['accent']};"
+        f"text_color:{palette['fg_primary']};"
+        f"fg_color:{palette['fg_primary']};"
+        f"tooltip_fg_color:{palette['fg_primary']};"
+        f"selected_fg_color:{palette['bg_primary']}"
+    )
+
     for gtk_ver in ("gtk-3.0", "gtk-4.0"):
         gtk_dir = config_root / gtk_ver
         gtk_dir.mkdir(parents=True, exist_ok=True)
@@ -239,6 +757,7 @@ def generate_gtk_qt_dunst_configs(
                     f"gtk-cursor-theme-name={cursor_theme}",
                     f"gtk-cursor-theme-size={cursor_size}",
                     "gtk-application-prefer-dark-theme=1",
+                    f"gtk-color-scheme={gtk_color_scheme}",
                 ]
             )
             + "\n",
@@ -247,104 +766,33 @@ def generate_gtk_qt_dunst_configs(
         written.append(settings_ini)
 
         gtk_css = gtk_dir / "gtk.css"
-        gtk_css.write_text(
-            "\n".join(
-                [
-                    "/* DETech Dynamic GTK-3/4 & Libadwaita Color & Widget Asset Bundle */",
-                    f"@define-color accent_bg_color {palette['accent']};",
-                    f"@define-color accent_fg_color {palette['bg_primary']};",
-                    f"@define-color accent_color {palette['accent']};",
-                    f"@define-color window_bg_color {palette['bg_primary']};",
-                    f"@define-color window_fg_color {palette['fg_primary']};",
-                    f"@define-color view_bg_color {palette['bg_secondary']};",
-                    f"@define-color view_fg_color {palette['fg_primary']};",
-                    f"@define-color headerbar_bg_color {palette['bg_secondary']};",
-                    f"@define-color headerbar_fg_color {palette['fg_primary']};",
-                    f"@define-color headerbar_border_color {palette['border_inactive']};",
-                    f"@define-color card_bg_color {palette['bg_tertiary']};",
-                    f"@define-color card_fg_color {palette['fg_primary']};",
-                    f"@define-color dialog_bg_color {palette['bg_primary']};",
-                    f"@define-color dialog_fg_color {palette['fg_primary']};",
-                    f"@define-color popover_bg_color {palette['bg_secondary']};",
-                    f"@define-color popover_fg_color {palette['fg_primary']};",
-                    f"@define-color sidebar_bg_color {palette['bg_secondary']};",
-                    f"@define-color sidebar_fg_color {palette['fg_primary']};",
-                    f"@define-color destructive_bg_color {palette['urgent']};",
-                    f"@define-color success_bg_color {palette['success']};",
-                    f"@define-color warning_bg_color {palette['warning']};",
-                    f"@define-color theme_bg_color {palette['bg_primary']};",
-                    f"@define-color theme_fg_color {palette['fg_primary']};",
-                    f"@define-color theme_base_color {palette['bg_secondary']};",
-                    f"@define-color theme_text_color {palette['fg_primary']};",
-                    f"@define-color theme_selected_bg_color {palette['accent']};",
-                    f"@define-color theme_selected_fg_color {palette['bg_primary']};",
-                    f"@define-color borders {palette['border_inactive']};",
-                    "",
-                    "selection {",
-                    "    background-color: @accent_bg_color;",
-                    "    color: @accent_fg_color;",
-                    "}",
-                    "tooltip {",
-                    "    background-color: @popover_bg_color;",
-                    "    color: @popover_fg_color;",
-                    "    border: 1px solid @accent_color;",
-                    "    border-radius: 8px;",
-                    "}",
-                    "headerbar {",
-                    "    background-color: @headerbar_bg_color;",
-                    "    color: @headerbar_fg_color;",
-                    "}",
-                ]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        gtk_css.write_text(render_gtk_css(palette), encoding="utf-8")
         written.append(gtk_css)
 
-    # 3. Qt5ct & Qt6ct configs and color scheme
+    # 3. Qt5ct & Qt6ct configs, color scheme, and QSS style sheet
+    has_kvantum = bool(
+        shutil.which("kvantummanager")
+        or Path("/usr/local/lib/qt5/plugins/styles/libkvantum.so").is_file()
+        or Path("/usr/local/lib/qt6/plugins/styles/libkvantum.so").is_file()
+        or Path("/usr/lib/qt5/plugins/styles/libkvantum.so").is_file()
+        or Path("/usr/lib/qt6/plugins/styles/libkvantum.so").is_file()
+    )
+    qt_style = appearance.get("qt_style") or ("kvantum-dark" if has_kvantum else "Fusion")
+
     for qt_ver in ("qt5ct", "qt6ct"):
         qt_dir = config_root / qt_ver
         colors_dir = qt_dir / "colors"
+        qss_dir = qt_dir / "qss"
         colors_dir.mkdir(parents=True, exist_ok=True)
+        qss_dir.mkdir(parents=True, exist_ok=True)
 
         color_conf = colors_dir / "detech.conf"
-        active_colors = ", ".join(
-            [
-                f"#ff{palette['fg_primary'][1:]}",
-                f"#ff{palette['bg_secondary'][1:]}",
-                f"#ff{palette['bg_tertiary'][1:]}",
-                f"#ff{palette['bg_secondary'][1:]}",
-                f"#ff{palette['bg_primary'][1:]}",
-                f"#ff{palette['bg_secondary'][1:]}",
-                f"#ff{palette['fg_primary'][1:]}",
-                "#ffffffff",
-                f"#ff{palette['fg_primary'][1:]}",
-                f"#ff{palette['bg_primary'][1:]}",
-                f"#ff{palette['bg_primary'][1:]}",
-                "#ff000000",
-                f"#ff{palette['accent'][1:]}",
-                f"#ff{palette['bg_primary'][1:]}",
-                f"#ff{palette['accent_alt'][1:]}",
-                f"#ff{palette['urgent'][1:]}",
-                f"#ff{palette['bg_secondary'][1:]}",
-                f"#ff{palette['fg_primary'][1:]}",
-                f"#ff{palette['bg_secondary'][1:]}",
-                f"#ff{palette['fg_primary'][1:]}",
-            ]
-        )
-        color_conf.write_text(
-            "\n".join(
-                [
-                    "[ColorScheme]",
-                    f"active_colors={active_colors}",
-                    f"disabled_colors={active_colors}",
-                    f"inactive_colors={active_colors}",
-                ]
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        color_conf.write_text(render_qt_colors_conf(palette), encoding="utf-8")
         written.append(color_conf)
+
+        qss_conf = qss_dir / "detech.qss"
+        qss_conf.write_text(render_qt_qss(palette), encoding="utf-8")
+        written.append(qss_conf)
 
         qt_conf = qt_dir / f"{qt_ver}.conf"
         qt_conf.write_text(
@@ -354,7 +802,8 @@ def generate_gtk_qt_dunst_configs(
                     f"color_scheme_path={color_conf}",
                     "custom_palette=true",
                     f"icon_theme={icon_theme}",
-                    "style=kvantum-dark",
+                    f"qss_path={qss_conf}",
+                    f"style={qt_style}",
                     "",
                     "[Fonts]",
                     f'fixed="{fonts["mono"]},{fonts["size"]},-1,5,50,0,0,0,0,0"',

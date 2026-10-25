@@ -827,6 +827,7 @@ def generate_hypr_configs(
     )
     if not any("dbus-update-activation-environment" in str(c) for c in autostart):
         hl_lua_lines.append('    hl.exec_cmd("dbus-update-activation-environment --all")')
+        hl_lua_lines.append('    hl.exec_cmd("gsettings set org.gnome.desktop.interface color-scheme \'prefer-dark\'")')
     for cmd in autostart:
         hl_lua_lines.append(f"    hl.exec_cmd({_lua_str(_resolve_autostart_cmd(cmd))})")
     hl_lua_lines.extend(
@@ -942,6 +943,7 @@ def generate_hypr_configs(
     hl_lines.extend(["", "# Autostart Daemons"])
     if not any("dbus-update-activation-environment" in str(c) for c in autostart):
         hl_lines.append("exec-once = dbus-update-activation-environment --all")
+        hl_lines.append("exec-once = gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'")
     for cmd in autostart:
         hl_lines.append(f"exec-once = {_resolve_autostart_cmd(cmd)}")
 

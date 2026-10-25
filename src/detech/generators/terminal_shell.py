@@ -137,6 +137,7 @@ def render_shell_init_sh(context: dict[str, Any], config_root: Path) -> str:
         "",
         f'export STARSHIP_CONFIG="{starship_conf}"',
         f'export DETECH_NEOFETCH="{"1" if enable_neofetch else "0"}"',
+        'export COLOR_SCHEME="prefer-dark"',
         "",
         "# Auto-display FreeBSD system information via Neofetch in interactive terminals",
         'case "$-" in',

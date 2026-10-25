@@ -210,3 +210,8 @@ def trigger_hot_reload(
             check=False,
             capture_output=True,
         )
+        subprocess.run(
+            ["gsettings", "set", "org.gnome.desktop.interface", "color-scheme", "prefer-dark"],
+            check=False,
+            capture_output=True,
+        )

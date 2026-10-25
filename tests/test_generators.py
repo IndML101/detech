@@ -219,12 +219,66 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
         assert f"({pid})" in p_content
         assert item["preview"] in p_content
 
-    # Verify GTK-2/3/4 and Kvantum asset bundle
+    # Verify GTK-2/3/4 dark theme background and accent colors
     assert (out_dir / "gtk-2.0" / "gtkrc").is_file()
+    gtk2_text = (out_dir / "gtk-2.0" / "gtkrc").read_text(encoding="utf-8")
+    assert "gtk-color-scheme" in gtk2_text
+    assert 'style "detech-dark"' in gtk2_text
+    assert "#1e2326" in gtk2_text  # ryoku-matcha primary background
+    assert "#a7c080" in gtk2_text  # ryoku-matcha accent
+
+    for gtk_ver in ("gtk-3.0", "gtk-4.0"):
+        s_ini = (out_dir / gtk_ver / "settings.ini").read_text(encoding="utf-8")
+        assert "gtk-application-prefer-dark-theme=1" in s_ini
+        assert "gtk-color-scheme" in s_ini
+        g_css = (out_dir / gtk_ver / "gtk.css").read_text(encoding="utf-8")
+        assert "@define-color window_bg_color" in g_css
+        assert "@define-color view_bg_color" in g_css
+        assert "@define-color accent_color" in g_css
+        assert "window, dialog" in g_css
+        assert "view, textview" in g_css
+        assert "entry, searchbar entry" in g_css
+        assert "button:checked, button:active" in g_css
+        assert "#1e2326" in g_css  # primary background
+        assert "#272e33" in g_css  # secondary background
+        assert "#a7c080" in g_css  # accent
+
+    # Verify Qt5ct and Qt6ct dark color scheme (21 roles) and QSS
+    for qt_ver in ("qt5ct", "qt6ct"):
+        q_conf = (out_dir / qt_ver / f"{qt_ver}.conf").read_text(encoding="utf-8")
+        assert "custom_palette=true" in q_conf
+        assert "qss_path=" in q_conf
+        c_conf = (out_dir / qt_ver / "colors" / "detech.conf").read_text(encoding="utf-8")
+        assert "active_colors=" in c_conf
+        assert "disabled_colors=" in c_conf
+        assert "inactive_colors=" in c_conf
+        colors_list = c_conf.split("active_colors=")[1].splitlines()[0].split(",")
+        assert len(colors_list) == 21
+        assert "#ff1e2326" in c_conf  # Window (primary background)
+        assert "#ff272e33" in c_conf  # Base (secondary background)
+        assert "#ffa7c080" in c_conf  # Highlight (accent)
+        qss_text = (out_dir / qt_ver / "qss" / "detech.qss").read_text(encoding="utf-8")
+        assert "QWidget {" in qss_text
+        assert "#1e2326" in qss_text  # primary background
+        assert "#272e33" in qss_text  # secondary background
+        assert "#a7c080" in qss_text  # accent
+
+    # Verify Kvantum asset bundle
     assert (out_dir / "Kvantum" / "DETech" / "DETech.kvconfig").is_file()
     assert (out_dir / "Kvantum" / "DETech" / "DETech.svg").is_file()
     kv_svg = (out_dir / "Kvantum" / "DETech" / "DETech.svg").read_text(encoding="utf-8")
     assert "#a7c080" in kv_svg
+    kv_conf = (out_dir / "Kvantum" / "kvconfig" if (out_dir / "Kvantum" / "kvconfig").is_file() else out_dir / "Kvantum" / "kvantum.kvconfig").read_text(encoding="utf-8")
+    assert "theme=DETech" in kv_conf
+
+    # Verify Rofi alternate and urgent state themes
+    assert "element normal.normal" in rofi_text
+    assert "element alternate.normal" in rofi_text
+    assert "element selected.normal" in rofi_text
+    assert "element-text selected" in rofi_text
+    assert "scrollbar {" in rofi_text
+    assert "element alternate.normal" in menu_rasi
+    assert "scrollbar {" in menu_rasi
 
     # Verify switching Hyprland plugin presets
     update_state(state_path=state_file, plugin_preset="eye-candy")
