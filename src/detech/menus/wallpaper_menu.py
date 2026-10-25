@@ -68,7 +68,7 @@ def open_wallpaper_menu(extra_dirs: list[Path] | None = None) -> Path | None:
     chosen = run_rofi_dmenu(
         entries,
         prompt="󰸉  Wallpapers",
-        mesg="Select a wallpaper to update hyprpaper and synchronize system-wide colors",
+        mesg="Select a wallpaper to apply immediately and synchronize system-wide colors",
     )
     if not chosen:
         return None

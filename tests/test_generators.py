@@ -85,10 +85,18 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     assert "dbus-launch" in wb_sh_text
     assert "exec waybar" in wb_sh_text
 
+    # Verify Wallpaper launcher script
+    wp_sh = out_dir / "hypr" / "launch-wallpaper.sh"
+    assert wp_sh.is_file()
+    wp_sh_text = wp_sh.read_text(encoding="utf-8")
+    assert "swaybg" in wp_sh_text
+    assert "hyprpaper" in wp_sh_text
+
     hl_lua_text = (out_dir / "hypr" / "hyprland.lua").read_text(encoding="utf-8")
     assert 'local colors = require("detech-colors")' in hl_lua_text
     assert 'hl.on("hyprland.start", function()' in hl_lua_text
     assert "launch-waybar.sh" in hl_lua_text
+    assert "launch-wallpaper.sh" in hl_lua_text
     assert "dbus-update-activation-environment" in hl_lua_text
     assert "hl.window_rule({" in hl_lua_text
     assert "hl.layer_rule({" in hl_lua_text
@@ -97,6 +105,7 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
 
     hl_conf_text = (out_dir / "hypr" / "hyprland.conf").read_text(encoding="utf-8")
     assert "launch-waybar.sh" in hl_conf_text
+    assert "launch-wallpaper.sh" in hl_conf_text
     assert "dbus-update-activation-environment" in hl_conf_text
 
     kb_lua_text = (out_dir / "hypr" / "detech-keybinds.lua").read_text(encoding="utf-8")

@@ -312,6 +312,7 @@ def generate_hypr_configs(
 
     cfg = context.get("config", {})
     appearance = cfg.get("appearance", {})
+    wallpaper = appearance.get("wallpaper", "")
     inp = cfg.get("input", {})
     autostart = cfg.get("autostart", [])
     keybinds_data = context.get("keybinds", {})
@@ -713,12 +714,66 @@ def generate_hypr_configs(
         pass
     written.append(launch_waybar_sh)
 
+    # 4b. Wallpaper Launcher (`hypr/launch-wallpaper.sh`)
+    launch_wallpaper_sh = hypr_dir / "launch-wallpaper.sh"
+    paper_wallpaper = wallpaper
+    if not paper_wallpaper:
+        default_bsd_wall = Path("/usr/local/share/hypr/wall0.png")
+        if default_bsd_wall.is_file():
+            paper_wallpaper = str(default_bsd_wall)
+        elif Path("/usr/local/share/wallpapers/freebsd-8k-wallpapers/FreeBSD-Purple_Logo_1C_Positive_7680x4320.png").is_file():
+            paper_wallpaper = "/usr/local/share/wallpapers/freebsd-8k-wallpapers/FreeBSD-Purple_Logo_1C_Positive_7680x4320.png"
+
+    launch_wp_lines = [
+        "#!/bin/sh",
+        "# DETech Wallpaper Process Controller for FreeBSD",
+        "# Supports swaybg and hyprpaper with graceful fallback",
+        "",
+        "# 1. Wait for Wayland display socket to become available (up to 3 seconds)",
+        'if [ -n "$WAYLAND_DISPLAY" ] && [ -n "$XDG_RUNTIME_DIR" ]; then',
+        "    max_wait=30",
+        "    count=0",
+        '    while [ ! -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ] && [ $count -lt $max_wait ]; do',
+        "        sleep 0.1",
+        "        count=$((count + 1))",
+        "    done",
+        "fi",
+        "",
+        "# 2. Terminate previous wallpaper processes",
+        "pkill -x swaybg 2>/dev/null",
+        "pkill -x hyprpaper 2>/dev/null",
+        "sleep 0.1",
+        "",
+        "# 3. Resolve wallpaper path",
+        f'WALL="{paper_wallpaper or ""}"',
+        'if [ -n "$1" ] && [ -f "$1" ]; then',
+        '    WALL="$1"',
+        "fi",
+        "",
+        "# 4. Launch wallpaper daemon: prefer swaybg, fallback to hyprpaper",
+        'if command -v swaybg >/dev/null 2>&1 && [ -n "$WALL" ] && [ -f "$WALL" ]; then',
+        '    exec swaybg -i "$WALL" -m fill',
+        'elif command -v hyprpaper >/dev/null 2>&1; then',
+        "    exec hyprpaper",
+        "fi",
+    ]
+    launch_wallpaper_sh.write_text("\n".join(launch_wp_lines) + "\n", encoding="utf-8")
+    try:
+        launch_wallpaper_sh.chmod(0o755)
+    except OSError:
+        pass
+    written.append(launch_wallpaper_sh)
+
     def _resolve_autostart_cmd(cmd_str: str) -> str:
         s = str(cmd_str).strip()
         if s == "waybar":
             return str(launch_waybar_sh)
         if s.startswith("waybar "):
             return f"{launch_waybar_sh} {s[7:]}"
+        if s in ("hyprpaper", "swaybg"):
+            return str(launch_wallpaper_sh)
+        if s.startswith("hyprpaper ") or s.startswith("swaybg "):
+            return f"{launch_wallpaper_sh} {s.split(None, 1)[1]}"
         return s
 
     # 4a. Main hyprland.lua (Hyprland 0.56/0.57+ Native Lua Config)
@@ -1071,6 +1126,8 @@ def generate_hypr_configs(
         default_bsd_wall = Path("/usr/local/share/hypr/wall0.png")
         if default_bsd_wall.is_file():
             paper_wallpaper = str(default_bsd_wall)
+        elif Path("/usr/local/share/wallpapers/freebsd-8k-wallpapers/FreeBSD-Purple_Logo_1C_Positive_7680x4320.png").is_file():
+            paper_wallpaper = "/usr/local/share/wallpapers/freebsd-8k-wallpapers/FreeBSD-Purple_Logo_1C_Positive_7680x4320.png"
 
     paper_lines = [
         "# DETech Hyprpaper Configuration",

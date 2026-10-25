@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
@@ -50,13 +51,109 @@ def compile_all(
     }
 
 
+def reload_wallpaper(
+    appearance: dict[str, Any],
+    target_root: Path | None = None,
+) -> None:
+    """Hot-reload wallpaper live via swaybg, hyprpaper IPC, or wallpaper launcher."""
+    wallpaper = appearance.get("wallpaper")
+    wall_path = Path(wallpaper).expanduser() if wallpaper else None
+    wall_str = str(wall_path) if wall_path and wall_path.is_file() else None
+
+    config_dir = target_root or get_xdg_config_dir()
+    wp_launcher = config_dir / "hypr" / "launch-wallpaper.sh"
+
+    # 1. Prefer swaybg when available (fastest, most reliable Wayland wallpaper daemon on FreeBSD)
+    if shutil.which("swaybg") and wall_str:
+        launched = False
+        cmd = f"{wp_launcher} {wall_str}" if wp_launcher.is_file() else f"swaybg -i {wall_str} -m fill"
+        if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
+            subprocess.run(["pkill", "-x", "hyprpaper"], check=False, capture_output=True)
+            subprocess.run(["pkill", "-x", "swaybg"], check=False, capture_output=True)
+            time.sleep(0.1)
+            dsp_res = subprocess.run(
+                ["hyprctl", "dispatch", f'hl.dsp.exec_cmd("{cmd}")'],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if dsp_res.returncode == 0 and "ok" in (dsp_res.stdout or "").lower():
+                launched = True
+            elif "Invalid dispatcher" in (dsp_res.stdout or "") or dsp_res.returncode != 0:
+                dsp_res2 = subprocess.run(
+                    ["hyprctl", "dispatch", "exec", cmd],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                if dsp_res2.returncode == 0 and "ok" in (dsp_res2.stdout or "").lower():
+                    launched = True
+        if not launched:
+            subprocess.run(["pkill", "-x", "hyprpaper"], check=False, capture_output=True)
+            subprocess.run(["pkill", "-x", "swaybg"], check=False, capture_output=True)
+            time.sleep(0.1)
+            if wp_launcher.is_file():
+                subprocess.Popen([str(wp_launcher), wall_str], start_new_session=True)
+            else:
+                subprocess.Popen(["swaybg", "-i", wall_str, "-m", "fill"], start_new_session=True)
+        return
+
+    # 2. Try hyprpaper dynamic IPC
+    ipc_applied = False
+    if wall_str and shutil.which("hyprctl") and os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+        res = subprocess.run(
+            ["hyprctl", "hyprpaper", "wallpaper", f",{wall_str},cover"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if res.returncode == 0 and "error" not in (res.stdout or "").lower() and "error" not in (res.stderr or "").lower():
+            ipc_applied = True
+        else:
+            res2 = subprocess.run(
+                ["hyprctl", "hyprpaper", "wallpaper", f",{wall_str}"],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if res2.returncode == 0 and "error" not in (res2.stdout or "").lower() and "error" not in (res2.stderr or "").lower():
+                ipc_applied = True
+
+    # 3. If hyprpaper IPC failed (e.g. AF_UNIX socket path > 104 bytes on FreeBSD), restart hyprpaper
+    if not ipc_applied and shutil.which("hyprpaper"):
+        subprocess.run(["pkill", "-x", "hyprpaper"], check=False, capture_output=True)
+        time.sleep(0.1)
+        cmd = str(wp_launcher) if wp_launcher.is_file() else "hyprpaper"
+        launched = False
+        if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
+            dsp_res = subprocess.run(
+                ["hyprctl", "dispatch", f'hl.dsp.exec_cmd("{cmd}")'],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if dsp_res.returncode == 0 and "ok" in (dsp_res.stdout or "").lower():
+                launched = True
+            elif "Invalid dispatcher" in (dsp_res.stdout or "") or dsp_res.returncode != 0:
+                dsp_res2 = subprocess.run(
+                    ["hyprctl", "dispatch", "exec", cmd],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                if dsp_res2.returncode == 0 and "ok" in (dsp_res2.stdout or "").lower():
+                    launched = True
+        if not launched:
+            subprocess.Popen(["hyprpaper"], start_new_session=True)
+
+
 def trigger_hot_reload(
     context: dict[str, Any],
     theme_data: dict[str, Any],
     fonts: dict[str, Any],
     target_root: Path | None = None,
 ) -> None:
-    """Trigger non-disruptive live reloads for Hyprland, Waybar, Kitty, Hyprpaper, and GTK."""
+    """Trigger non-disruptive live reloads for Hyprland, Waybar, Kitty, Wallpaper, and GTK."""
     appearance = context.get("config", {}).get("appearance", {})
 
     if shutil.which("hyprctl"):
@@ -71,10 +168,7 @@ def trigger_hot_reload(
         else:
             subprocess.run(["hyprctl", "reload"], check=False, capture_output=True)
 
-        wallpaper = appearance.get("wallpaper")
-        if wallpaper and Path(wallpaper).expanduser().is_file():
-            wall_str = str(Path(wallpaper).expanduser())
-            subprocess.run(["hyprctl", "hyprpaper", "wallpaper", f",{wall_str}"], check=False, capture_output=True)
+    reload_wallpaper(appearance, target_root=target_root)
 
     if shutil.which("pkill"):
         wb_res = subprocess.run(["pkill", "-USR2", "waybar"], check=False, capture_output=True)

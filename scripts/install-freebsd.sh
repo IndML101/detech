@@ -21,6 +21,7 @@ FREEBSD_PACKAGES="
     hyprlock
     hypridle
     hyprpaper
+    swaybg
     waybar
     rofi
     kitty
