@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 from pathlib import Path
 
 from detech.core.compiler import compile_all
@@ -183,6 +185,18 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
         assert item["prompt_symbol"] in r_content
         assert "border: 1px 0px 0px 0px;" in r_content
         assert "border-color: @bg-tertiary;" in r_content
+
+    # Validate Rofi syntax parsing if rofi binary is installed
+    if shutil.which("rofi"):
+        for rasi_file in [out_dir / "rofi" / "config.rasi", out_dir / "rofi" / "menu.rasi", *(out_dir / "rofi" / "layouts").glob("*.rasi")]:
+            proc = subprocess.run(
+                ["rofi", "-dump-theme", "-theme", str(rasi_file)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            assert proc.returncode == 0, f"Rofi returned non-zero for {rasi_file}: {proc.stderr}"
+            assert "Failed to parse theme" not in proc.stderr, f"Rofi syntax parsing error in {rasi_file}:\n{proc.stderr}"
 
     # Verify all 15 pre-compiled Starship prompts and active starship.toml
     starship_text = (out_dir / "starship.toml").read_text(encoding="utf-8")

@@ -158,8 +158,6 @@ def render_rofi_layout_rasi(
         "    border-color: @bg-tertiary;",
         "    padding: 10px 0px 0px 0px;",
         "}",
-        "    spacing: 8px;",
-        "}",
         "button {",
         "    padding: 8px 12px;",
         f"    border-radius: {border_radius};",
