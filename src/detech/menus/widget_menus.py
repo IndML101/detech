@@ -12,6 +12,9 @@ from detech.menus.glyph_emoji_menu import copy_to_wayland_clipboard
 from detech.menus.rofi_runner import run_rofi_dmenu
 
 
+MINIMALIST_SEPARATOR = "────────────"
+
+
 def build_calendar_menu_entries(year: int | None = None, month: int | None = None) -> tuple[str, list[str]]:
     """Build formatted calendar header and navigable day/week entries for Rofi."""
     today = datetime.date.today()
@@ -24,7 +27,7 @@ def build_calendar_menu_entries(year: int | None = None, month: int | None = Non
         f"  Today: {today.strftime('%A, %B %d, %Y')}",
         "◀  Previous Month",
         "▶  Next Month",
-        "────────────────────────────",
+        MINIMALIST_SEPARATOR,
     ]
     for line in month_grid.splitlines()[1:]:
         entries.append(f"   {line}")
@@ -127,7 +130,7 @@ def open_notifications_menu() -> str | None:
         "󰎟  Pop Latest Notification from History",
         "󰅖  Dismiss All Active Notifications",
         "󰆴  Clear Notification History",
-        "────────────────────────────",
+        MINIMALIST_SEPARATOR,
     ]
 
     recent = status.get("recent", [])
@@ -143,7 +146,7 @@ def open_notifications_menu() -> str | None:
         prompt="󰂚  Notifications",
         mesg=f"Status: {'Paused (DND)' if paused else 'Active'} | History: {status.get('history', 0)}",
     )
-    if not choice or choice.startswith("────") or choice == "(No notifications in history)":
+    if not choice or choice.startswith("──") or choice == "(No notifications in history)":
         return None
 
     if "Do Not Disturb" in choice or "Resume Notifications" in choice:

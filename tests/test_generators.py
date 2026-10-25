@@ -163,6 +163,17 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     # Verify all 15 pre-compiled Rofi layouts and active config.rasi
     rofi_text = (out_dir / "rofi" / "config.rasi").read_text(encoding="utf-8")
     assert "spotlight-minimal" in rofi_text
+    assert "border: 1px 0px 0px 0px;" in rofi_text
+    assert "border-color: @bg-tertiary;" in rofi_text
+
+    colors_rasi = (out_dir / "rofi" / "colors.rasi").read_text(encoding="utf-8")
+    assert "separatorcolor:" in colors_rasi
+
+    menu_rasi = (out_dir / "rofi" / "menu.rasi").read_text(encoding="utf-8")
+    assert "padding: 14px 18px;" in menu_rasi
+    assert "border: 1px 0px 0px 0px;" in menu_rasi
+    assert "border-color: @bg-tertiary;" in menu_rasi
+
     for item in list_rofi_layouts():
         lid = item["id"]
         r_file = out_dir / "rofi" / "layouts" / f"{lid}.rasi"
@@ -170,6 +181,8 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
         r_content = r_file.read_text(encoding="utf-8")
         assert f"({lid})" in r_content
         assert item["prompt_symbol"] in r_content
+        assert "border: 1px 0px 0px 0px;" in r_content
+        assert "border-color: @bg-tertiary;" in r_content
 
     # Verify all 15 pre-compiled Starship prompts and active starship.toml
     starship_text = (out_dir / "starship.toml").read_text(encoding="utf-8")

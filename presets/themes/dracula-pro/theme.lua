@@ -4,7 +4,7 @@ return {
     display_name = "Dracula Pro (Neon Vampire)",
     variant = "dark",
     gtk_theme = "Dracula",
-    icon_theme = "Tela-circle",
+    icon_theme = "Tela-circle-dark",
     cursor_theme = "Bibata-Modern-Ice",
     kvantum_theme = "DETech",
     default_waybar = "split-wings",

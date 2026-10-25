@@ -4,7 +4,7 @@ return {
     display_name = "Rosé Pine Moon (Soho Twilight)",
     variant = "dark",
     gtk_theme = "Rose-Pine-Moon",
-    icon_theme = "Tela-circle",
+    icon_theme = "Tela-circle-dark",
     cursor_theme = "Bibata-Modern-Ice",
     kvantum_theme = "DETech",
     default_waybar = "capsules-dark",

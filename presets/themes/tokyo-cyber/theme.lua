@@ -4,7 +4,7 @@ return {
     display_name = "Tokyo Cyber (Neon Night)",
     variant = "dark",
     gtk_theme = "Tokyonight-Dark",
-    icon_theme = "Tela-circle",
+    icon_theme = "TokyoNight-SE",
     cursor_theme = "Bibata-Modern-Ice",
     kvantum_theme = "KvTokyoNight",
     default_waybar = "cyber-angled",

@@ -9,6 +9,7 @@ from PIL import Image
 from detech.core.color_engine import (
     extract_palette_from_wallpaper,
     hex_to_hypr_rgba,
+    hex_to_rgb,
     hex_to_rgba_css,
     list_themes,
     load_theme,
@@ -67,3 +68,19 @@ def test_dynamic_wallpaper_palette_extraction(tmp_path: Path) -> None:
     assert required_keys.issubset(set(palette.keys()))
     for val in palette.values():
         assert val.startswith("#") and len(val) == 7
+
+
+def test_all_curated_themes_are_dark_mode() -> None:
+    themes = list_themes()
+    assert len(themes) == 10
+    for t in themes:
+        assert t.get("variant") == "dark", f"Theme {t.get('name')} must have variant='dark'"
+        colors = t.get("colors", {})
+        bg_hex = colors.get("bg_primary", "#ffffff")
+        r, g, b = hex_to_rgb(bg_hex)
+        luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+        assert luminance < 0.35, f"Theme {t.get('name')} bg_primary {bg_hex} is too bright for dark mode"
+        fg_hex = colors.get("fg_primary", "#000000")
+        rf, gf, bf = hex_to_rgb(fg_hex)
+        fg_lum = (0.299 * rf + 0.587 * gf + 0.114 * bf) / 255.0
+        assert fg_lum > 0.50, f"Theme {t.get('name')} fg_primary {fg_hex} is too dark for dark mode"

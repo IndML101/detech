@@ -11,6 +11,7 @@ from detech.menus.keybinds_menu import (
 )
 from detech.menus.pkg_menu import build_software_menu_entries
 from detech.menus.theme_menu import build_theme_menu_entries
+from detech.menus.widget_menus import MINIMALIST_SEPARATOR, build_calendar_menu_entries
 
 
 def test_keybinds_menu_formatting_and_dispatch() -> None:
@@ -40,3 +41,9 @@ def test_font_and_theme_and_glyph_menus() -> None:
     pkg_rows = build_software_menu_entries(installed_names={"neovim"})
     nvim_row = next(r for r in pkg_rows if r["name"] == "neovim")
     assert nvim_row["action"] == "delete"
+
+
+def test_widget_menu_separators() -> None:
+    _, entries = build_calendar_menu_entries(year=2026, month=10)
+    assert MINIMALIST_SEPARATOR in entries
+    assert "────────────────────────────" not in entries
