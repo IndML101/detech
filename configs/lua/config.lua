@@ -42,6 +42,13 @@ return {
         uptime = { enabled = true },
         clipboard = { enabled = true },
     },
+    screenshots = {
+        directory = "~/Pictures/Screenshots",
+        default_target = "both", -- "both", "save", "copy", "edit"
+        notify = true,
+        include_cursor = false,
+        slurp_border_width = 2,
+    },
     fonts = {
         mono = "JetBrainsMono Nerd Font",
         sans = "JetBrainsMono Nerd Font Propo",

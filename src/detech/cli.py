@@ -59,6 +59,8 @@ from detech.menus.pkg_menu import open_software_menu
 from detech.menus.rofi_runner import launch_app_drawer
 from detech.menus.theme_menu import list_icon_themes, open_color_scheme_menu, open_icon_menu, open_theme_menu
 from detech.menus.wallpaper_menu import open_wallpaper_menu
+from detech.menus.screenshot_menu import open_screenshot_menu
+from detech.screenshot import capture_screenshot
 from detech.menus.widget_menus import (
     open_calendar_menu,
     open_clipboard_menu,
@@ -108,12 +110,35 @@ def build_parser() -> argparse.ArgumentParser:
             "neofetch",
             "weather-location",
             "weather-units",
+            "screenshot-dir",
         ],
     )
     p_set.add_argument("value", help="New value for the target setting")
     p_set.add_argument("--size", type=int, default=None, help="Font size in pt (when setting font)")
     p_set.add_argument("--output-dir", type=Path, default=None, help="Override target XDG ~/.config directory")
     p_set.add_argument("--no-reload", action="store_true", help="Skip live daemon reload")
+
+    # detech screenshot [mode]
+    p_shot = sub.add_parser("screenshot", help="Capture desktop screenshot or launch interactive picker")
+    p_shot.add_argument(
+        "mode",
+        nargs="?",
+        default="menu",
+        choices=["menu", "full", "area", "window"],
+        help="Capture mode: menu, full, area, or window (default: menu)",
+    )
+    p_shot.add_argument(
+        "-t",
+        "--target",
+        choices=["both", "save", "copy", "edit"],
+        default="both",
+        help="Destination: both (save & clipboard), save, copy, or edit (default: both)",
+    )
+    p_shot.add_argument("-o", "--output", type=Path, default=None, help="Custom output file or directory")
+    p_shot.add_argument("-d", "--delay", type=int, default=0, help="Countdown delay in seconds")
+    p_shot.add_argument("-c", "--cursor", action="store_true", help="Include mouse cursor in screenshot")
+    p_shot.add_argument("--no-notify", action="store_true", help="Do not send desktop notification")
+    p_shot.add_argument("--json", action="store_true", help="Output result as JSON")
 
     # detech list <category>
     p_list = sub.add_parser("list", help="List available themes, layouts, prompts, plugins, Nerd Fonts, icons, or keybinds")
@@ -148,6 +173,7 @@ def build_parser() -> argparse.ArgumentParser:
             "notifications",
             "wifi",
             "bluetooth",
+            "screenshot",
         ],
     )
 
@@ -316,6 +342,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             update_state(weather_location=val)
         elif t == "weather-units":
             update_state(weather_units=val)
+        elif t == "screenshot-dir":
+            update_state(screenshot_dir=str(Path(val).expanduser().resolve()))
         elif t == "font":
             updates: dict[str, object] = {
                 "font_mono": val,
@@ -419,6 +447,38 @@ def main(argv: Sequence[str] | None = None) -> int:
             open_wifi_menu()
         elif m == "bluetooth":
             open_bluetooth_menu()
+        elif m == "screenshot":
+            open_screenshot_menu()
+        return 0
+
+    if args.command == "screenshot":
+        if args.mode == "menu":
+            res = open_screenshot_menu()
+            if res and getattr(args, "json", False):
+                print(json.dumps(res, indent=2))
+            return 0 if res else 1
+
+        res = capture_screenshot(
+            mode=args.mode,
+            target=args.target,
+            output=args.output,
+            delay=args.delay,
+            include_cursor=args.cursor,
+            notify=not args.no_notify,
+        )
+        if getattr(args, "json", False):
+            print(json.dumps(res, indent=2))
+        elif res.get("status") == "success":
+            print(f"✓ Screenshot captured: {res['path']}")
+            if res.get("copied"):
+                print("  󰅌 Copied to Wayland clipboard (image/png)")
+            if res.get("edited"):
+                print("   Launched image annotator")
+        elif res.get("status") == "cancelled":
+            print("Screenshot selection cancelled.")
+        else:
+            print(f"Error: {res.get('message', 'Capture failed')}", file=sys.stderr)
+            return 1
         return 0
 
     if args.command == "bsd":

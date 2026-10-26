@@ -94,6 +94,13 @@ detech set rofi grid-cards
 detech set starship tokyo-pill
 detech set icon Papirus-Dark
 detech set font "JetBrainsMono Nerd Font" --size 11
+
+# Capture screenshots (interactive picker, region, full screen, active window)
+detech screenshot
+detech screenshot area
+detech screenshot full --delay 5
+detech screenshot window --target edit
+detech set screenshot-dir ~/Pictures/Screenshots
 ```
 
 ---
@@ -136,6 +143,15 @@ All shortcuts can be searched and executed directly via the **Keybind Search & R
 | `SUPER + Y` | `detech menu clipboard` | Clipboard History Picker (`cliphist`) |
 | `SUPER + O` | `detech menu notifications` | Dunst Notification Center |
 | `SUPER + SHIFT + N` | `detech bsd widgets dnd toggle` | Toggle Do Not Disturb |
+
+### Screenshot & Screen Capture
+| Shortcut | Action | Description |
+| :--- | :--- | :--- |
+| `Print` | `detech screenshot area` | Interactive Area Selection to File & Clipboard |
+| `SUPER + Print` | `detech screenshot full` | Capture Entire Desktop to File & Clipboard |
+| `SUPER + SHIFT + Print` | `detech screenshot window` | Capture Active Window to File & Clipboard |
+| `SUPER + SHIFT + S` | `detech menu screenshot` | Interactive Rofi Screenshot Mode Picker |
+| `CTRL + Print` | `detech screenshot area --target copy` | Capture Area to Wayland Clipboard Only |
 
 ### Window Management & Workspaces
 | Shortcut | Action | Description |

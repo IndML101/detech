@@ -40,6 +40,13 @@ return {
         { mod = {mod}, key = "I", action = "exec", arg = "detech menu wifi", category = "Widgets", desc = "Open Wi-Fi Network Picker" },
         { mod = {mod}, key = "U", action = "exec", arg = "detech menu bluetooth", category = "Widgets", desc = "Open Bluetooth Device Manager" },
 
+        -- Screenshot Utility
+        { mod = {}, key = "Print", action = "exec", arg = "detech screenshot area", category = "Screenshot", desc = "Capture Area to File & Clipboard" },
+        { mod = {mod}, key = "Print", action = "exec", arg = "detech screenshot full", category = "Screenshot", desc = "Capture Entire Screen" },
+        { mod = {mod, "SHIFT"}, key = "Print", action = "exec", arg = "detech screenshot window", category = "Screenshot", desc = "Capture Active Window" },
+        { mod = {mod, "SHIFT"}, key = "S", action = "exec", arg = "detech menu screenshot", category = "Screenshot", desc = "Open Screenshot Interactive Menu" },
+        { mod = {"CTRL"}, key = "Print", action = "exec", arg = "detech screenshot area --target copy", category = "Screenshot", desc = "Capture Area to Clipboard Only" },
+
         -- Window Management & Layout
         { mod = {mod}, key = "V", action = "togglefloating", arg = "", category = "Window", desc = "Toggle Floating Window" },
         { mod = {mod}, key = "F", action = "fullscreen", arg = "0", category = "Window", desc = "Toggle Fullscreen" },

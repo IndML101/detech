@@ -30,6 +30,8 @@ FREEBSD_PACKAGES="
     playerctl
     curl
     dunst
+    grim
+    slurp
     wl-clipboard
     cliphist
     seatd

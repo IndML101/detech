@@ -3,6 +3,7 @@
 return {
     window_rules = {
         { rule = "float on", match = "match:class ^(pavucontrol|qt5ct|qt6ct|nwg-look)$" },
+        { rule = "float on", match = "match:class ^(swappy|com.gabm.satty)$" },
         { rule = "float on", match = "match:title ^(DETech Package Installer)$" },
         { rule = "size 900 600", match = "match:title ^(DETech Package Installer)$" },
         { rule = "center on", match = "match:title ^(DETech Package Installer)$" },

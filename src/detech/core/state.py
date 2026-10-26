@@ -31,6 +31,7 @@ class RuntimeState:
     enable_neofetch: bool | None = None
     weather_location: str | None = None
     weather_units: str | None = None
+    screenshot_dir: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {k: v for k, v in asdict(self).items() if v is not None}
@@ -119,6 +120,10 @@ def get_effective_context(state_path: Path | None = None) -> dict[str, Any]:
             weather_cfg["location"] = state.weather_location
         if state.weather_units is not None:
             weather_cfg["units"] = state.weather_units
+
+    if state.screenshot_dir is not None:
+        shots_cfg = cfg.setdefault("screenshots", {})
+        shots_cfg["directory"] = state.screenshot_dir
 
     configs["runtime_state"] = state.to_dict()
     return configs

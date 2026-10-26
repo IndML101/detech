@@ -12,6 +12,7 @@ from detech.menus.keybinds_menu import (
     format_keybind_entries,
 )
 from detech.menus.pkg_menu import build_software_menu_entries
+from detech.menus.screenshot_menu import build_screenshot_menu_entries
 from detech.menus.theme_menu import build_theme_menu_entries
 from detech.menus.wallpaper_menu import build_wallpaper_menu_entries
 from detech.menus.widget_menus import MINIMALIST_SEPARATOR, build_calendar_menu_entries
@@ -31,6 +32,10 @@ def test_keybinds_menu_formatting_and_dispatch() -> None:
         "dispatch",
         'hl.dsp.exec_cmd("detech menu fonts")',
     ]
+    shot_bind = next(e for e in entries if "detech screenshot area" in e["arg"])
+    assert shot_bind["combo"] == "Print"
+    shot_menu_bind = next(e for e in entries if "detech menu screenshot" in e["arg"])
+    assert "SUPER + SHIFT + S" in shot_menu_bind["combo"]
 
 
 def test_font_and_theme_and_glyph_menus() -> None:
@@ -47,6 +52,10 @@ def test_font_and_theme_and_glyph_menus() -> None:
     pkg_rows = build_software_menu_entries(installed_names={"neovim"})
     nvim_row = next(r for r in pkg_rows if r["name"] == "neovim")
     assert nvim_row["action"] == "delete"
+
+    shot_entries = build_screenshot_menu_entries()
+    assert len(shot_entries) >= 9
+    assert any("Selected Area" in r["label"] for r in shot_entries)
 
 
 def test_widget_menu_separators() -> None:

@@ -25,6 +25,7 @@ CURATED_FREEBSD_DESKTOP_PKGS: list[dict[str, str]] = [
     {"name": "fastfetch", "version": "latest", "comment": "Fast system information tool"},
     {"name": "grim", "version": "latest", "comment": "Grab images from a Wayland compositor"},
     {"name": "slurp", "version": "latest", "comment": "Select a region in a Wayland compositor"},
+    {"name": "swappy", "version": "latest", "comment": "Wayland snapshot editing and annotation tool"},
     {"name": "wl-clipboard", "version": "latest", "comment": "Command-line Wayland clipboard utilities"},
     {"name": "cliphist", "version": "latest", "comment": "Wayland clipboard history manager"},
     {"name": "nerd-fonts", "version": "latest", "comment": "Developer-targeted fonts with high number of glyphs"},
