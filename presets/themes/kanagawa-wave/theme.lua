@@ -10,7 +10,7 @@ return {
     default_waybar = "glass-full",
     default_rofi = "banner-header",
     default_starship = "boxed-tree",
-    default_hyprlock = "ryoku-zen",
+    default_hyprlock = "kanagawa-wave",
     colors = {
         bg_primary = "#1f1f28",
         bg_secondary = "#16161d",

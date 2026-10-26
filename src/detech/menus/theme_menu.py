@@ -123,6 +123,7 @@ def open_theme_menu() -> dict[str, Any] | None:
                 waybar_layout=t.get("default_waybar", "island-top"),
                 rofi_layout=t.get("default_rofi", "grid-cards"),
                 starship_preset=t.get("default_starship", "tokyo-pill"),
+                hyprlock_layout=t.get("default_hyprlock", "bsd-crimson-guard"),
             )
             compile_all(reload_daemons=True)
             return item

@@ -10,6 +10,7 @@ return {
     default_waybar = "cyber-angled",
     default_rofi = "cyber-hud",
     default_starship = "cyber-brackets",
+    default_hyprlock = "tokyo-cyberdeck",
     colors = {
         bg_primary = "#1a1b26",
         bg_secondary = "#16161e",

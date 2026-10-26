@@ -10,7 +10,7 @@ return {
     default_waybar = "retro-box",
     default_rofi = "dual-pane",
     default_starship = "gruv-ribbon",
-    default_hyprlock = "minimal-clock",
+    default_hyprlock = "gruvbox-retro",
     colors = {
         bg_primary = "#1d2021",
         bg_secondary = "#282828",

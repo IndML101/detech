@@ -56,7 +56,7 @@ return {
         waybar_layout = "island-top",
         rofi_layout = "grid-cards",
         starship_preset = "tokyo-pill",
-        hyprlock_layout = "minimal-clock",
+        hyprlock_layout = "bsd-crimson-guard",
         icon_theme = "Papirus-Dark",
         cursor_theme = "Bibata-Modern-Ice",
         cursor_size = 24,

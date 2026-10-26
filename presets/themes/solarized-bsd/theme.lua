@@ -10,7 +10,7 @@ return {
     default_waybar = "freebsd-telemetry",
     default_rofi = "compact-list",
     default_starship = "devops-status",
-    default_hyprlock = "bsd-fortress",
+    default_hyprlock = "solarized-precision",
     colors = {
         bg_primary = "#002b36",
         bg_secondary = "#073642",

@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-from detech.core.color_engine import list_themes, resolve_active_palette
+from detech.core.color_engine import list_themes, load_theme, resolve_active_palette
 from detech.core.compiler import compile_all
 from detech.core.font_manager import get_nerd_font_status_list, resolve_font_settings
 from detech.core.paths import get_xdg_config_dir
@@ -276,7 +276,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         t = args.target
         val = args.value
         if t == "theme":
-            update_state(theme=val)
+            try:
+                t_obj = load_theme(val)
+                theme_updates: dict[str, object] = {"theme": val}
+                if "default_waybar" in t_obj:
+                    theme_updates["waybar_layout"] = t_obj["default_waybar"]
+                if "default_rofi" in t_obj:
+                    theme_updates["rofi_layout"] = t_obj["default_rofi"]
+                if "default_starship" in t_obj:
+                    theme_updates["starship_preset"] = t_obj["default_starship"]
+                if "default_hyprlock" in t_obj:
+                    theme_updates["hyprlock_layout"] = t_obj["default_hyprlock"]
+                if "icon_theme" in t_obj:
+                    theme_updates["icon_theme"] = t_obj["icon_theme"]
+                update_state(**theme_updates)
+            except Exception:
+                update_state(theme=val)
         elif t == "waybar":
             update_state(waybar_layout=val)
         elif t == "rofi":

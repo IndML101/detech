@@ -10,6 +10,7 @@ return {
     default_waybar = "island-top",
     default_rofi = "grid-cards",
     default_starship = "bsd-devil",
+    default_hyprlock = "bsd-crimson-guard",
     colors = {
         bg_primary = "#110d10",
         bg_secondary = "#1c1419",

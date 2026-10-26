@@ -10,7 +10,7 @@ return {
     default_waybar = "capsules-dark",
     default_rofi = "spotlight-minimal",
     default_starship = "pastel-blocks",
-    default_hyprlock = "hyde-card",
+    default_hyprlock = "rose-twilight",
     colors = {
         bg_primary = "#232136",
         bg_secondary = "#2a273f",

@@ -73,7 +73,7 @@ return {
         waybar_layout = "island-top",    -- Active Waybar preset (1 of 15)
         rofi_layout = "grid-cards",      -- Active Rofi app drawer preset (1 of 15)
         starship_preset = "tokyo-pill",  -- Active Starship prompt preset (1 of 15)
-        hyprlock_layout = "minimal-clock",-- Active Hyprlock screen lock preset (1 of 4)
+        hyprlock_layout = "bsd-crimson-guard",-- Active Hyprlock screen lock preset (1 of 14: 10 theme-matched + 4 classic)
         icon_theme = "Papirus-Dark",     -- System-wide icon pack (GTK, Qt, Rofi, Dunst)
         cursor_theme = "Bibata-Modern-Ice", -- System-wide cursor theme
         cursor_size = 24,                -- Cursor size in px
@@ -205,6 +205,7 @@ return {
         { mod = {mod, "SHIFT"}, key = "R", action = "exec", arg = "detech menu rofi-layout", category = "DETech", desc = "Switch Rofi App Drawer Layout (15 Presets)" },
         { mod = {mod, "SHIFT"}, key = "P", action = "exec", arg = "detech menu starship", category = "DETech", desc = "Switch Starship Prompt (15 Presets)" },
         { mod = {mod, "SHIFT"}, key = "G", action = "exec", arg = "detech menu plugins", category = "DETech", desc = "Switch Hyprland Plugin Preset" },
+        { mod = {mod, "SHIFT"}, key = "L", action = "exec", arg = "detech menu hyprlock", category = "DETech", desc = "Switch Hyprlock Screen Lock Theme (14 Presets)" },
         { mod = {mod}, key = "E", action = "exec", arg = "detech menu files", category = "Launcher", desc = "Rofi File Browser" },
         { mod = {mod}, key = "S", action = "exec", arg = "detech menu software", category = "FreeBSD", desc = "FreeBSD pkg Software Picker" },
         { mod = {mod}, key = "Period", action = "exec", arg = "detech menu glyphs", category = "Launcher", desc = "Emoji, NerdFont Glyph & Symbol Picker" },

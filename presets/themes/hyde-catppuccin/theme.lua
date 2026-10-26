@@ -10,6 +10,7 @@ return {
     default_waybar = "dock-bottom",
     default_rofi = "hyde-classic",
     default_starship = "tokyo-pill",
+    default_hyprlock = "catppuccin-card",
     colors = {
         bg_primary = "#1e1e2e",
         bg_secondary = "#181825",

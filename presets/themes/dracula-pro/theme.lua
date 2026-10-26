@@ -10,7 +10,7 @@ return {
     default_waybar = "split-wings",
     default_rofi = "hyde-classic",
     default_starship = "neon-arrow",
-    default_hyprlock = "hyde-card",
+    default_hyprlock = "dracula-vampire",
     colors = {
         bg_primary = "#22212c",
         bg_secondary = "#1b1a23",

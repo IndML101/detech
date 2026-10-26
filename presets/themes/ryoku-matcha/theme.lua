@@ -10,6 +10,7 @@ return {
     default_waybar = "minimal-bar",
     default_rofi = "spotlight-minimal",
     default_starship = "ryoku-clean",
+    default_hyprlock = "ryoku-matcha",
     colors = {
         bg_primary = "#1e2326",
         bg_secondary = "#272e33",

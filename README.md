@@ -126,6 +126,7 @@ All shortcuts can be searched and executed directly via the **Keybind Search & R
 | `SUPER + SHIFT + R` | `detech menu rofi-layout` | Switch Rofi App Drawer Layout (15 presets) |
 | `SUPER + SHIFT + P` | `detech menu starship` | Switch Starship Prompt (15 presets) |
 | `SUPER + SHIFT + G` | `detech menu plugins` | Switch Hyprland Plugin Preset (6 presets) |
+| `SUPER + SHIFT + L` | `detech menu hyprlock` | Switch Hyprlock Screen Lock Theme (14 presets) |
 
 ### Widgets & Notification Popups
 | Shortcut | Action | Description |
@@ -297,7 +298,7 @@ DETech/
 │   ├── rofi/                   # 15 Switchable Rofi app drawer layouts
 │   ├── starship/               # 15 Switchable Starship prompt presets
 │   ├── hyprplugins/            # 6 Official Hyprland plugin presets
-│   └── hyprlock/               # 4 Hyprlock screen lock layouts
+│   └── hyprlock/               # 14 Hyprlock screen lock layouts (10 theme-matched + 4 classic)
 ├── scripts/
 │   ├── install-freebsd.sh      # FreeBSD dependency installer & setup script
 │   └── setup-ly.sh             # Ly TUI login manager installer & FreeBSD console config

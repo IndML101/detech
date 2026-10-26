@@ -1022,26 +1022,29 @@ def generate_hypr_configs(
     written.append(hyprland_conf)
 
     # 5. hyprlock.conf
-    lock_layout_id = appearance.get("hyprlock_layout", "minimal-clock")
+    lock_layout_id = appearance.get("hyprlock_layout", "bsd-crimson-guard")
     lock_layouts = {item["id"]: item for item in list_hyprlock_layouts()}
     lock_spec = lock_layouts.get(
         lock_layout_id,
         {
-            "id": "minimal-clock",
-            "blur_passes": 3,
-            "blur_size": 7,
+            "id": "bsd-crimson-guard",
+            "blur_passes": 4,
+            "blur_size": 8,
             "clock_size": fonts["lock_size"],
-            "clock_pos": "0, 120",
-            "input_width": 280,
-            "input_height": 52,
+            "clock_pos": "0, 160",
+            "input_width": 320,
+            "input_height": 54,
             "input_pos": "0, -80",
-            "greeting": "  Locked — $USER",
+            "greeting": "  FreeBSD Daemon Station — Security Clearance",
         },
     )
     wallpaper = appearance.get("wallpaper", "")
     bg_r, bg_g, bg_b = hex_to_rgb(palette["bg_secondary"])
     fg_r, fg_g, fg_b = hex_to_rgb(palette["fg_primary"])
+    fg_sec_r, fg_sec_g, fg_sec_b = hex_to_rgb(palette.get("fg_secondary", palette["fg_primary"]))
     acc_r, acc_g, acc_b = hex_to_rgb(palette["accent"])
+    warn_r, warn_g, warn_b = hex_to_rgb(palette.get("warning", palette.get("urgent", "#f4a261")))
+    urg_r, urg_g, urg_b = hex_to_rgb(palette.get("urgent", "#e63946"))
 
     hyprlock_conf = hypr_dir / "hyprlock.conf"
     lock_lines = [
@@ -1052,45 +1055,154 @@ def generate_hypr_configs(
         f"    color = rgba({bg_r}, {bg_g}, {bg_b}, 1.0)",
         f"    blur_passes = {lock_spec.get('blur_passes', 3)}",
         f"    blur_size = {lock_spec.get('blur_size', 7)}",
-        "}",
-        "",
-        "label {",
-        "    monitor =",
-        '    text = cmd[update:1000] echo "$(date +\'%H:%M\')"',
-        f"    color = rgba({fg_r}, {fg_g}, {fg_b}, 1.0)",
-        f"    font_size = {lock_spec.get('clock_size', fonts['lock_size'])}",
-        f"    font_family = {fonts['mono']}",
-        f"    position = {lock_spec.get('clock_pos', '0, 120')}",
-        "    halign = center",
-        "    valign = center",
-        "}",
-        "",
-        "label {",
-        "    monitor =",
-        f"    text = {lock_spec.get('greeting', '  Locked — $USER')}",
-        f"    color = rgba({acc_r}, {acc_g}, {acc_b}, 1.0)",
-        f"    font_size = {fonts['size'] + 3}",
-        f"    font_family = {fonts['sans']}",
-        "    position = 0, -20",
-        "    halign = center",
-        "    valign = center",
-        "}",
-        "",
-        "input-field {",
-        "    monitor =",
-        f"    size = {lock_spec.get('input_width', 280)}, {lock_spec.get('input_height', 52)}",
-        "    outline_thickness = 2",
-        f"    outer_color = rgba({acc_r}, {acc_g}, {acc_b}, 1.0)",
-        f"    inner_color = rgba({bg_r}, {bg_g}, {bg_b}, 0.85)",
-        f"    font_color = rgba({fg_r}, {fg_g}, {fg_b}, 1.0)",
-        f"    font_family = {fonts['mono']}",
-        "    fade_on_empty = false",
-        "    placeholder_text = <i>Password...</i>",
-        f"    position = {lock_spec.get('input_pos', '0, -80')}",
-        "    halign = center",
-        "    valign = center",
-        "}",
     ]
+    if "noise" in lock_spec:
+        lock_lines.append(f"    noise = {lock_spec['noise']}")
+    if "contrast" in lock_spec:
+        lock_lines.append(f"    contrast = {lock_spec['contrast']}")
+    if "brightness" in lock_spec:
+        lock_lines.append(f"    brightness = {lock_spec['brightness']}")
+    lock_lines.extend(["}", ""])
+
+    # Optional Card Shape (Frosted background container for card/pill layouts)
+    if lock_spec.get("card_width") and lock_spec.get("card_height"):
+        card_w = lock_spec["card_width"]
+        card_h = lock_spec["card_height"]
+        card_pos = lock_spec.get("card_pos", "0, 0")
+        card_rnd = lock_spec.get("card_rounding", 16)
+        card_alpha = lock_spec.get("card_alpha", 0.5)
+        card_border_w = lock_spec.get("card_border_size", 2)
+        lock_lines.extend(
+            [
+                "shape {",
+                "    monitor =",
+                f"    size = {card_w}, {card_h}",
+                f"    color = rgba({bg_r}, {bg_g}, {bg_b}, {card_alpha})",
+                f"    rounding = {card_rnd}",
+                f"    border_size = {card_border_w}",
+                f"    border_color = rgba({acc_r}, {acc_g}, {acc_b}, 0.6)",
+                f"    position = {card_pos}",
+                f"    halign = {lock_spec.get('card_halign', 'center')}",
+                f"    valign = {lock_spec.get('card_valign', 'center')}",
+                "}",
+                "",
+            ]
+        )
+
+    # Optional Date Label
+    if lock_spec.get("show_date", False) or lock_spec.get("date_format"):
+        date_fmt = lock_spec.get("date_format", "%A, %d %B %Y")
+        date_pos = lock_spec.get("date_pos", "0, 200")
+        date_size = lock_spec.get("date_size", fonts["size"] + 3)
+        lock_lines.extend(
+            [
+                "label {",
+                "    monitor =",
+                f'    text = cmd[update:1000] echo "$(date +\'{date_fmt}\')"',
+                f"    color = rgba({fg_sec_r}, {fg_sec_g}, {fg_sec_b}, 0.85)",
+                f"    font_size = {date_size}",
+                f"    font_family = {fonts['sans']}",
+                f"    position = {date_pos}",
+                f"    halign = {lock_spec.get('date_halign', 'center')}",
+                f"    valign = {lock_spec.get('date_valign', 'center')}",
+                "}",
+                "",
+            ]
+        )
+
+    # Clock Label
+    clock_fmt = lock_spec.get("clock_format", "%H:%M")
+    clock_cmd = f'cmd[update:1000] echo "$(date +\'{clock_fmt}\')"' if "%" in str(clock_fmt) else clock_fmt
+    lock_lines.extend(
+        [
+            "label {",
+            "    monitor =",
+            f"    text = {clock_cmd}",
+            f"    color = rgba({fg_r}, {fg_g}, {fg_b}, 1.0)",
+            f"    font_size = {lock_spec.get('clock_size', fonts['lock_size'])}",
+            f"    font_family = {fonts['mono']}",
+            f"    position = {lock_spec.get('clock_pos', '0, 120')}",
+            f"    halign = {lock_spec.get('clock_halign', 'center')}",
+            f"    valign = {lock_spec.get('clock_valign', 'center')}",
+            "}",
+            "",
+        ]
+    )
+    # Greeting Label
+    greeting_pos = lock_spec.get("greeting_pos", "0, -20")
+    greeting_size = lock_spec.get("greeting_size", fonts["size"] + 3)
+    lock_lines.extend(
+        [
+            "label {",
+            "    monitor =",
+            f"    text = {lock_spec.get('greeting', '  Locked — $USER')}",
+            f"    color = rgba({acc_r}, {acc_g}, {acc_b}, 1.0)",
+            f"    font_size = {greeting_size}",
+            f"    font_family = {fonts['sans']}",
+            f"    position = {greeting_pos}",
+            f"    halign = {lock_spec.get('greeting_halign', 'center')}",
+            f"    valign = {lock_spec.get('greeting_valign', 'center')}",
+            "}",
+            "",
+        ]
+    )
+
+    # Optional Subgreeting / Status Label
+    if lock_spec.get("subgreeting"):
+        subgreeting_pos = lock_spec.get("subgreeting_pos", "0, -45")
+        subgreeting_size = lock_spec.get("subgreeting_size", max(10, fonts["size"] - 1))
+        lock_lines.extend(
+            [
+                "label {",
+                "    monitor =",
+                f"    text = {lock_spec['subgreeting']}",
+                f"    color = rgba({fg_sec_r}, {fg_sec_g}, {fg_sec_b}, 0.75)",
+                f"    font_size = {subgreeting_size}",
+                f"    font_family = {fonts['sans']}",
+                f"    position = {subgreeting_pos}",
+                f"    halign = {lock_spec.get('subgreeting_halign', 'center')}",
+                f"    valign = {lock_spec.get('subgreeting_valign', 'center')}",
+                "}",
+                "",
+            ]
+        )
+
+    # Input Field
+    input_rounding = lock_spec.get("input_rounding", lock_spec.get("rounding", 20))
+    outline_thick = lock_spec.get("outline_thickness", 2)
+    inner_alpha = lock_spec.get("inner_alpha", 0.85)
+    dots_size = lock_spec.get("dots_size", 0.22)
+    dots_spacing = lock_spec.get("dots_spacing", 0.20)
+    dots_center = "true" if lock_spec.get("dots_center", True) else "false"
+    dots_rounding = lock_spec.get("dots_rounding", -1)
+    placeholder = lock_spec.get("placeholder", "<i>Password...</i>")
+    fail_text = lock_spec.get("fail_text", "<i>Authentication Failed ($ATTEMPTS)</i>")
+    lock_lines.extend(
+        [
+            "input-field {",
+            "    monitor =",
+            f"    size = {lock_spec.get('input_width', 280)}, {lock_spec.get('input_height', 52)}",
+            f"    outline_thickness = {outline_thick}",
+            f"    outer_color = rgba({acc_r}, {acc_g}, {acc_b}, 1.0)",
+            f"    inner_color = rgba({bg_r}, {bg_g}, {bg_b}, {inner_alpha})",
+            f"    font_color = rgba({fg_r}, {fg_g}, {fg_b}, 1.0)",
+            f"    font_family = {fonts['mono']}",
+            f"    check_color = rgba({warn_r}, {warn_g}, {warn_b}, 1.0)",
+            f"    fail_color = rgba({urg_r}, {urg_g}, {urg_b}, 1.0)",
+            f"    rounding = {input_rounding}",
+            f"    fade_on_empty = false",
+            f"    placeholder_text = {placeholder}",
+            f"    fail_text = {fail_text}",
+            f"    dots_size = {dots_size}",
+            f"    dots_spacing = {dots_spacing}",
+            f"    dots_center = {dots_center}",
+            f"    dots_rounding = {dots_rounding}",
+            f"    position = {lock_spec.get('input_pos', '0, -80')}",
+            f"    halign = {lock_spec.get('input_halign', 'center')}",
+            f"    valign = {lock_spec.get('input_valign', 'center')}",
+            "}",
+        ]
+    )
     hyprlock_conf.write_text("\n".join(lock_lines) + "\n", encoding="utf-8")
     written.append(hyprlock_conf)
 

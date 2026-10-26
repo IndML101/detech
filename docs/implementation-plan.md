@@ -134,7 +134,7 @@ DETech/
 │   ├── rofi/                       # 15 Switchable Rofi app drawer layouts
 │   ├── starship/                   # 15 Switchable Starship prompt presets
 │   ├── hyprplugins/                # 6 Hyprland plugin presets
-│   └── hyprlock/                   # 4 Screen lock layouts
+│   └── hyprlock/                   # 14 Screen lock layouts (10 theme-matched + 4 classic)
 ├── scripts/
 │   ├── install-freebsd.sh          # FreeBSD pkg, seatd/dbus & user configs installer
 │   └── setup-ly.sh                 # Ly TUI login manager installer & FreeBSD console config
@@ -193,7 +193,7 @@ DETech/
 - `theme_menu.py` (`SUPER + SHIFT + T`): Switch among 10 curated dark themes.
 - `wallpaper_menu.py` (`SUPER + SHIFT + W`): Wallpaper browser with 64px image icon previews and dynamic color extraction.
 - `font_menu.py` (`SUPER + SHIFT + F`): Nerd Fonts picker and installer.
-- `layout_menu.py`: Switchers for Waybar (`SUPER + SHIFT + B`), Rofi (`SUPER + SHIFT + R`), Starship (`SUPER + SHIFT + P`), and Hyprland plugins (`SUPER + SHIFT + G`).
+- `layout_menu.py`: Switchers for Waybar (`SUPER + SHIFT + B`), Rofi (`SUPER + SHIFT + R`), Starship (`SUPER + SHIFT + P`), Hyprland plugins (`SUPER + SHIFT + G`), and Hyprlock (`SUPER + SHIFT + L`).
 - `widget_menus.py`: Popups for Interactive Calendar (`SUPER + C`), Weather Forecast (`SUPER + M`), Clipboard History (`SUPER + Y`), and Notification Center (`SUPER + O`).
 - `pkg_menu.py` (`SUPER + S`), `glyph_emoji_menu.py` (`SUPER + .`), and `file_browser.py` (`SUPER + E`).
 

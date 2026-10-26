@@ -10,6 +10,7 @@ return {
     default_waybar = "split-wings",
     default_rofi = "sidebar-left",
     default_starship = "minimal-lambda",
+    default_hyprlock = "nordic-glacier",
     colors = {
         bg_primary = "#2e3440",
         bg_secondary = "#3b4252",

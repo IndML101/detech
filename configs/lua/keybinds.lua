@@ -27,6 +27,7 @@ return {
         { mod = {mod, "SHIFT"}, key = "R", action = "exec", arg = "detech menu rofi-layout", category = "DETech", desc = "Switch Rofi App Drawer Layout (15 Presets)" },
         { mod = {mod, "SHIFT"}, key = "P", action = "exec", arg = "detech menu starship", category = "DETech", desc = "Switch Starship Prompt (15 Presets)" },
         { mod = {mod, "SHIFT"}, key = "G", action = "exec", arg = "detech menu plugins", category = "DETech", desc = "Switch Hyprland Plugin Preset" },
+        { mod = {mod, "SHIFT"}, key = "L", action = "exec", arg = "detech menu hyprlock", category = "DETech", desc = "Switch Hyprlock Screen Lock Theme (14 Presets)" },
         { mod = {mod}, key = "Tab", action = "workspace", arg = "e+1", category = "Workspace", desc = "Cycle Next Workspace" },
         { mod = {mod}, key = "E", action = "exec", arg = "detech menu files", category = "Launcher", desc = "Rofi File Browser" },
         { mod = {mod}, key = "S", action = "exec", arg = "detech menu software", category = "FreeBSD", desc = "FreeBSD pkg Software Picker" },

@@ -22,6 +22,9 @@ def test_keybinds_menu_formatting_and_dispatch() -> None:
     assert len(entries) >= 25
     fonts_bind = next(e for e in entries if "detech menu fonts" in e["arg"])
     assert "SUPER + SHIFT + F" in fonts_bind["combo"]
+    hyprlock_bind = next(e for e in entries if "detech menu hyprlock" in e["arg"])
+    assert "SUPER + SHIFT + L" in hyprlock_bind["combo"]
+    assert build_hyprctl_dispatch_command(hyprlock_bind) == ["hyprctl", "dispatch", "exec", "detech menu hyprlock"]
     assert build_hyprctl_dispatch_command(fonts_bind) == ["hyprctl", "dispatch", "exec", "detech menu fonts"]
     assert build_hyprctl_lua_dispatch_command(fonts_bind) == [
         "hyprctl",

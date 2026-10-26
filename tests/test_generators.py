@@ -7,6 +7,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from detech.core.color_engine import list_themes
 from detech.core.compiler import compile_all
 from detech.core.state import update_state
 from detech.generators.hyprland import list_hyprlock_layouts, list_plugin_presets
@@ -23,8 +24,30 @@ def test_preset_catalog_counts() -> None:
     assert len(waybar_layouts) == 15
     assert len(rofi_layouts) == 15
     assert len(starship_prompts) == 15
-    assert len(list_hyprlock_layouts()) >= 4
+    hyprlock_layouts = list_hyprlock_layouts()
+    assert len(hyprlock_layouts) >= 14
     assert len(list_plugin_presets()) == 6
+
+    # Verify every DETech theme has a dedicated default_hyprlock in the catalog
+    themes = list_themes()
+    assert len(themes) == 10
+    hyprlock_ids = {item["id"] for item in hyprlock_layouts}
+    for t in themes:
+        assert "default_hyprlock" in t, f"Theme {t.get('name')} missing default_hyprlock"
+        assert t["default_hyprlock"] in hyprlock_ids, f"Theme {t.get('name')} default_hyprlock {t['default_hyprlock']} not found in hyprlock layouts"
+
+    # Ensure every hyprlock layout has rich metadata
+    for item in hyprlock_layouts:
+        assert item.get("id")
+        assert item.get("name")
+        assert item.get("description")
+        assert item.get("style_variant")
+        assert item.get("clock_size")
+        assert item.get("clock_pos")
+        assert item.get("input_width")
+        assert item.get("input_height")
+        assert item.get("input_pos")
+        assert item.get("greeting")
 
     # Ensure every preset has rich metadata
     for item in waybar_layouts:
@@ -342,4 +365,28 @@ def test_ly_generator_custom_options() -> None:
     assert "blank_box = false" in rendered
     assert "hide_borders = true" in rendered
     assert "border_fg = 0x01FF5500" in rendered
+
+
+def test_all_theme_lock_screens_compile(tmp_path: Path) -> None:
+    """Verify that compiling each DETech theme with its default lock screen succeeds."""
+    themes = list_themes()
+    for t in themes:
+        theme_name = t["name"]
+        lock_id = t["default_hyprlock"]
+        state_file = tmp_path / f"state_{theme_name}.json"
+        out_dir = tmp_path / f"xdg_{theme_name}"
+        update_state(
+            state_path=state_file,
+            theme=theme_name,
+            hyprlock_layout=lock_id,
+        )
+        compile_all(output_dir=out_dir, state_path=state_file, reload_daemons=False)
+        lock_conf = out_dir / "hypr" / "hyprlock.conf"
+        assert lock_conf.is_file(), f"hyprlock.conf missing for theme {theme_name}"
+        content = lock_conf.read_text(encoding="utf-8")
+        assert f"Layout: {lock_id}" in content
+        assert "background {" in content
+        assert "input-field {" in content
+        assert "label {" in content
+
 
