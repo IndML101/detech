@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from detech.menus.font_menu import build_font_menu_entries
 from detech.menus.glyph_emoji_menu import format_glyph_entries
 from detech.menus.keybinds_menu import (
@@ -11,6 +13,7 @@ from detech.menus.keybinds_menu import (
 )
 from detech.menus.pkg_menu import build_software_menu_entries
 from detech.menus.theme_menu import build_theme_menu_entries
+from detech.menus.wallpaper_menu import build_wallpaper_menu_entries
 from detech.menus.widget_menus import MINIMALIST_SEPARATOR, build_calendar_menu_entries
 
 
@@ -47,3 +50,16 @@ def test_widget_menu_separators() -> None:
     _, entries = build_calendar_menu_entries(year=2026, month=10)
     assert MINIMALIST_SEPARATOR in entries
     assert "────────────────────────────" not in entries
+
+
+def test_wallpaper_menu_entries() -> None:
+    wallpapers = [
+        Path("/usr/local/share/hypr/wall0.png"),
+        Path("/usr/local/share/wallpapers/sunset.jpg"),
+    ]
+    labels, entries = build_wallpaper_menu_entries(wallpapers)
+    assert len(labels) == 2
+    assert len(entries) == 2
+    assert labels[0] == "󰸉  wall0.png  (/usr/local/share/hypr)"
+    assert entries[0] == f"{labels[0]}\0icon\x1f/usr/local/share/hypr/wall0.png"
+    assert "\0icon\x1f" in entries[1]

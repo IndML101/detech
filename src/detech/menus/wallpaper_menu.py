@@ -54,6 +54,13 @@ def select_wallpaper(
     return compile_all(reload_daemons=reload_daemons)
 
 
+def build_wallpaper_menu_entries(wallpapers: list[Path]) -> tuple[list[str], list[str]]:
+    """Build (display_labels, rofi_entries_with_icons) for discovered wallpapers."""
+    labels = [f"󰸉  {w.name}  ({w.parent})" for w in wallpapers]
+    entries = [f"{label}\0icon\x1f{w}" for label, w in zip(labels, wallpapers)]
+    return labels, entries
+
+
 def open_wallpaper_menu(extra_dirs: list[Path] | None = None) -> Path | None:
     """Open Rofi Wallpaper Picker and apply selected wallpaper + system-wide colors."""
     wallpapers = discover_wallpapers(extra_dirs=extra_dirs)
@@ -64,16 +71,18 @@ def open_wallpaper_menu(extra_dirs: list[Path] | None = None) -> Path | None:
         )
         return None
 
-    entries = [f"󰸉  {w.name}  ({w.parent})" for w in wallpapers]
+    labels, entries = build_wallpaper_menu_entries(wallpapers)
     chosen = run_rofi_dmenu(
         entries,
         prompt="󰸉  Wallpapers",
         mesg="Select a wallpaper to apply immediately and synchronize system-wide colors",
+        show_icons=True,
+        theme_str="element-icon { size: 64px; border-radius: 6px; } element { padding: 8px 14px; }",
     )
     if not chosen:
         return None
 
-    for idx, label in enumerate(entries):
+    for idx, label in enumerate(labels):
         if label == chosen:
             chosen_path = wallpapers[idx]
             select_wallpaper(chosen_path, enable_dynamic_colors=True, reload_daemons=True)

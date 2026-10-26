@@ -84,6 +84,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_apply.add_argument("--output-dir", type=Path, default=None, help="Override target XDG ~/.config directory")
     p_apply.add_argument("--no-reload", action="store_true", help="Do not trigger live daemon reloads")
 
+    # detech session
+    p_sess = sub.add_parser("session", help="Compile configs and launch DETech Hyprland Wayland session")
+
     # detech set <target> <value>
     p_set = sub.add_parser("set", help="Update a DETech preset, theme, font, or layout and recompile")
     p_set.add_argument(
@@ -205,6 +208,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             "font_sans": fonts["sans"],
             "font_size": fonts["size"],
             "accent_color": palette.get("accent"),
+            "login_manager": ctx.get("freebsd", {}).get("login_manager", {}).get("manager", "ly"),
+            "login_animation": ctx.get("freebsd", {}).get("login_manager", {}).get("animation", "matrix"),
         }
         if args.json:
             print(json.dumps(summary, indent=2))
@@ -246,6 +251,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = compile_all(output_dir=args.output_dir, reload_daemons=not args.no_reload)
         print(f"✓ Compiled {len(result['written_files'])} configuration files into {result['output_dir']}")
         return 0
+
+    if args.command == "session":
+        try:
+            compile_all(reload_daemons=False)
+        except Exception:
+            pass
+        hyprland_bin = (
+            shutil.which("start-hyprland")
+            or shutil.which("Hyprland")
+            or "/usr/local/bin/start-hyprland"
+        )
+        os.environ["XDG_CURRENT_DESKTOP"] = "Hyprland"
+        os.environ["XDG_SESSION_DESKTOP"] = "Hyprland"
+        os.environ["XDG_SESSION_TYPE"] = "wayland"
+        os.execv(hyprland_bin, [hyprland_bin])
 
     if args.command == "set":
         t = args.target

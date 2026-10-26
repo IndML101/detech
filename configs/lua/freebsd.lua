@@ -4,6 +4,24 @@ return {
     os = "FreeBSD",
     privilege_cmd = "doas", -- "doas" or "sudo"
     session_manager = "seatd", -- "seatd" or "consolekit2"
+    login_manager = {
+        manager = "ly", -- "ly" or "none"
+        enable = true,
+        animation = "matrix", -- "matrix", "doom", "colormix", "gameoflife", "none"
+        animation_frame_delay = 5,
+        animation_timeout_sec = 0,
+        bigclock = "en", -- "en", "none", "fa"
+        bigclock_12hr = false,
+        bigclock_seconds = false,
+        asterisk = "*",
+        blank_box = true,
+        hide_borders = false,
+        save = true,
+        clear_password = true,
+        box_title = "DETech Desktop Environment (FreeBSD)",
+        auto_login_user = nil,
+        auto_login_session = nil,
+    },
     audio = {
         backend = "auto", -- "auto", "mixer", "wpctl", "pactl"
         oss_device = "/dev/mixer0",

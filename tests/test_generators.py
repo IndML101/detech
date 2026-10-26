@@ -292,3 +292,54 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     compile_all(output_dir=out_dir, state_path=state_file, reload_daemons=False)
     plug_gamer = (out_dir / "hypr" / "detech-plugins.conf").read_text(encoding="utf-8")
     assert "csgo-vulkan-fix {" in plug_gamer
+
+    # Verify Ly TUI Login Manager configs
+    ly_conf = out_dir / "detech" / "generated" / "ly" / "config.ini"
+    assert ly_conf.is_file()
+    assert (out_dir / "ly" / "config.ini").is_file()
+    ly_text = ly_conf.read_text(encoding="utf-8")
+    assert "full_color = true" in ly_text
+    assert "animation = matrix" in ly_text
+    assert "cmatrix_fg = 0x" in ly_text
+    assert "bigclock = en" in ly_text
+    assert "waylandsessions = /usr/local/share/wayland-sessions" in ly_text
+    assert "box_title = DETech Desktop Environment (FreeBSD)" in ly_text
+
+
+def test_ly_generator_custom_options() -> None:
+    from detech.generators.ly import color_to_ly_hex, render_ly_config
+
+    assert color_to_ly_hex("#ffffff") == "0x00FFFFFF"
+    assert color_to_ly_hex("#ffffff", bold=True) == "0x01FFFFFF"
+    assert color_to_ly_hex("#000000") == "0x00000000"
+
+    context = {
+        "freebsd": {
+            "login_manager": {
+                "manager": "ly",
+                "animation": "doom",
+                "bigclock": "en",
+                "bigclock_12hr": True,
+                "asterisk": "#",
+                "blank_box": False,
+                "hide_borders": True,
+                "save": True,
+            }
+        }
+    }
+    palette = {
+        "bg_primary": "#121212",
+        "fg_primary": "#eeeeee",
+        "accent": "#ff5500",
+        "border_active": "#ff5500",
+        "urgent": "#ff0000",
+    }
+    rendered = render_ly_config(context, palette)
+    assert "animation = doom" in rendered
+    assert "bigclock = en" in rendered
+    assert "bigclock_12hr = true" in rendered
+    assert "asterisk = #" in rendered
+    assert "blank_box = false" in rendered
+    assert "hide_borders = true" in rendered
+    assert "border_fg = 0x01FF5500" in rendered
+

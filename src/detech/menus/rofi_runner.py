@@ -14,6 +14,8 @@ def run_rofi_dmenu(
     prompt: str = " DETech",
     mesg: str | None = None,
     theme_file: Path | None = None,
+    show_icons: bool = False,
+    theme_str: str | None = None,
 ) -> str | None:
     """Display `entries` in Rofi dmenu mode and return the selected line (or None if cancelled)."""
     if not shutil.which("rofi"):
@@ -21,10 +23,14 @@ def run_rofi_dmenu(
 
     menu_rasi = theme_file or (get_xdg_config_dir() / "rofi" / "menu.rasi")
     cmd = ["rofi", "-dmenu", "-i", "-p", prompt]
+    if show_icons:
+        cmd.append("-show-icons")
     if mesg:
         cmd.extend(["-mesg", mesg])
     if menu_rasi.is_file():
         cmd.extend(["-theme", str(menu_rasi)])
+    if theme_str:
+        cmd.extend(["-theme-str", theme_str])
 
     payload = "\n".join(entries)
     proc = subprocess.run(

@@ -41,6 +41,7 @@ FREEBSD_PACKAGES="
     qt6ct
     python312
     py312-pillow
+    ly
 "
 
 PYTHON_BIN="python3.12"
@@ -80,7 +81,7 @@ if [ "$OS_NAME" = "FreeBSD" ]; then
         echo "  -> All required FreeBSD packages are already installed."
     fi
 
-    echo "[2/4] Verifying FreeBSD /etc/rc.conf services (seatd & dbus)..."
+    echo "[2/4] Verifying FreeBSD services & Ly login manager..."
     for svc in dbus seatd; do
         if ! sysrc -n "${svc}_enable" 2>/dev/null | grep -qi "YES"; then
             run_cmd "$PRIV_CMD" sysrc "${svc}_enable=YES"
@@ -89,6 +90,34 @@ if [ "$OS_NAME" = "FreeBSD" ]; then
             echo "  -> Service '$svc' is already enabled."
         fi
     done
+
+    # Setup Ly gettytab wrapper entry if missing or using un-wrapped binary
+    if ! grep -q "ly_wrapper" /etc/gettytab 2>/dev/null; then
+        echo "  -> Configuring Ly in /etc/gettytab (using ly_wrapper)..."
+        if grep -q "Ly:" /etc/gettytab 2>/dev/null; then
+            run_cmd "$PRIV_CMD" sed -i '' '/^Ly:/,/^# End/d' /etc/gettytab 2>/dev/null || true
+        fi
+        run_cmd "$PRIV_CMD" sh -c "printf '\nLy:\\\\\\\n\t:lo=/usr/local/bin/ly_wrapper:\\\\\\\n\t:al=root:\n# End Ly entry\n' >> /etc/gettytab"
+    fi
+
+    # Ensure /etc/ttys has ttyv1 configured for Ly
+    if ! grep -E "ttyv1.*getty Ly" /etc/ttys 2>/dev/null | grep -qv "^#"; then
+        echo "  -> Enabling Ly on ttyv1 in /etc/ttys..."
+        run_cmd "$PRIV_CMD" sed -i '' 's/^[#]*ttyv1.*/ttyv1\t"\/usr\/libexec\/getty Ly"\t\txterm\tonifexists secure/' /etc/ttys
+    fi
+
+    # Install DETech session desktop file into /usr/local/share/wayland-sessions
+    run_cmd "$PRIV_CMD" mkdir -p /usr/local/share/wayland-sessions
+    run_cmd "$PRIV_CMD" sh -c "cat > /usr/local/share/wayland-sessions/detech.desktop <<'EOF'
+[Desktop Entry]
+Name=DETech
+Comment=Desktop Environment Technology for FreeBSD (Hyprland)
+Exec=/usr/local/bin/detech session
+Type=Application
+DesktopNames=DETech;Hyprland
+Keywords=tiling;wayland;compositor;detech;hyprland;
+EOF"
+    echo "  -> Installed /usr/local/share/wayland-sessions/detech.desktop"
 else
     echo "[1/4] Skipping FreeBSD pkg installation on non-FreeBSD host."
     echo "[2/4] Skipping FreeBSD rc.conf service check on non-FreeBSD host."
@@ -124,6 +153,14 @@ EOF
         PYTHONPATH="$REPO_ROOT/src" "$PYTHON_BIN" -m detech.cli apply
     else
         PYTHONPATH="$REPO_ROOT/src" "$PYTHON_BIN" -m detech.cli apply --no-reload
+    fi
+    # Symlink /usr/local/etc/ly/config.ini to generated user config for live syncing
+    if [ "$OS_NAME" = "FreeBSD" ] && [ -f "$CONFIG_DEST/generated/ly/config.ini" ]; then
+        if [ ! -L "/usr/local/etc/ly/config.ini" ]; then
+            run_cmd "$PRIV_CMD" mkdir -p /usr/local/etc/ly
+            run_cmd "$PRIV_CMD" ln -sf "$CONFIG_DEST/generated/ly/config.ini" /usr/local/etc/ly/config.ini || true
+            echo "  -> Symlinked /usr/local/etc/ly/config.ini to $CONFIG_DEST/generated/ly/config.ini"
+        fi
     fi
     SHELL_INIT_LINE='[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh" ] && . "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh"'
     for rc_file in "$HOME/.profile" "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.shrc"; do
