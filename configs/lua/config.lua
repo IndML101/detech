@@ -75,7 +75,7 @@ return {
     input = {
         kb_layout = "us",
         kb_variant = "",
-        kb_options = "caps:escape",
+        kb_options = "",
         follow_mouse = 1,
         touchpad_natural_scroll = true,
         sensitivity = 0.0,
