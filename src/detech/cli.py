@@ -41,6 +41,9 @@ from detech.generators.hyprland import list_hyprlock_layouts, list_plugin_preset
 from detech.generators.rofi import list_rofi_layouts
 from detech.generators.terminal_shell import list_starship_prompts
 from detech.generators.waybar import list_waybar_layouts
+from detech.freebsd.bluetooth import get_bluetooth_status
+from detech.menus.bluetooth_menu import open_bluetooth_menu
+from detech.menus.wifi_menu import open_wifi_menu
 from detech.menus.file_browser import open_file_browser
 from detech.menus.font_menu import open_font_menu
 from detech.menus.glyph_emoji_menu import format_glyph_entries, open_glyph_menu
@@ -143,6 +146,8 @@ def build_parser() -> argparse.ArgumentParser:
             "weather",
             "clipboard",
             "notifications",
+            "wifi",
+            "bluetooth",
         ],
     )
 
@@ -172,10 +177,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_pkg.add_argument("query", nargs="?", default="")
     p_pkg.add_argument("--json", action="store_true")
 
-    p_widgets = bsd_sub.add_parser("widgets", help="Waybar widgets (weather, calendar, network, media, dnd, uptime, clipboard)")
+    p_widgets = bsd_sub.add_parser("widgets", help="Waybar widgets (weather, calendar, network, bluetooth, media, dnd, uptime, clipboard)")
     p_widgets.add_argument(
         "widget",
-        choices=["weather", "calendar", "network", "media", "dnd", "uptime", "clipboard"],
+        choices=["weather", "calendar", "network", "bluetooth", "media", "dnd", "uptime", "clipboard"],
     )
     p_widgets.add_argument("subaction", nargs="?", default="status")
     p_widgets.add_argument("--json", action="store_true")
@@ -395,6 +400,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             open_clipboard_menu()
         elif m == "notifications":
             open_notifications_menu()
+        elif m == "wifi":
+            open_wifi_menu()
+        elif m == "bluetooth":
+            open_bluetooth_menu()
         return 0
 
     if args.command == "bsd":
@@ -510,6 +519,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 res = get_calendar_status(accent_color=palette.get("accent", "#e64553"))
             elif w_type == "network":
                 res = get_network_status()
+            elif w_type == "bluetooth":
+                res = get_bluetooth_status()
             elif w_type == "media":
                 if args.subaction in ("play-pause", "next", "prev"):
                     res = run_media_action(args.subaction)

@@ -24,7 +24,8 @@ Users configure their entire desktop through clean, declarative **Lua configurat
   - **Interactive Calendar (`custom/calendar` & `clock`)**: Pango-highlighted month grid in tooltip + interactive Rofi month-navigation calendar (`SUPER + C`).
   - **Notifications & Do Not Disturb (`custom/dnd` / `custom/notifications`)**: Unread/history badge count from `dunstctl`, recent notification history in tooltip, interactive **Rofi Notification Center** (`SUPER + O`), and DND toggle (`SUPER + SHIFT + N`).
   - **System Tray (`tray`)**: Enabled across all 15 Waybar layouts with passive item support and dynamic theme-matched context menu CSS (`#tray menu`).
-  - **FreeBSD Network (`custom/bsd-net`)**: Queries FreeBSD `ifconfig` for active Wi-Fi SSID (`wlan0`) or Ethernet (`em0`) and IPv4 address.
+  - **FreeBSD Network & Wi-Fi (`custom/bsd-net`)**: Queries FreeBSD `ifconfig` for active Wi-Fi SSID (`wlan0`) or Ethernet (`em0`) and IPv4 address. Clicking opens the interactive **Rofi Wi-Fi Picker** (`SUPER + I`) to scan and connect to available networks.
+  - **FreeBSD Bluetooth Manager (`custom/bsd-bluetooth`)**: Waybar status icon and interactive **Rofi Bluetooth Manager** (`SUPER + U`) with inquiry discovery and pairing wizard (`bluetooth-config scan`).
   - **MPRIS Media Player (`custom/media`)**: Displays `playerctl` Now Playing artist/title with click to play/pause and scroll for next/previous track.
   - **FreeBSD Kernel & Uptime (`custom/bsd-uptime`)**: Queries `sysctl kern.boottime` & `kern.osrelease`, launching `detech fetch` on click.
   - **Clipboard Manager (`custom/clipboard`)**: Displays `cliphist` item count and launches the Rofi clipboard history picker (`SUPER + Y`).

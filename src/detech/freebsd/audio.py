@@ -12,10 +12,25 @@ def detect_audio_backend(preferred: str = "auto") -> str:
     """Detect available audio control utility on FreeBSD."""
     if preferred != "auto":
         return preferred
+    # Check if PipeWire wpctl is actually responsive
     if shutil.which("wpctl"):
-        return "wpctl"
+        try:
+            res = subprocess.run(["wpctl", "status"], capture_output=True, timeout=0.3)
+            if res.returncode == 0:
+                return "wpctl"
+        except Exception:
+            pass
+    # On FreeBSD, native OSS mixer is the primary, first-class base utility
+    if shutil.which("mixer"):
+        return "mixer"
+    # Fallback to PulseAudio pactl if responsive
     if shutil.which("pactl"):
-        return "pactl"
+        try:
+            res = subprocess.run(["pactl", "info"], capture_output=True, timeout=0.3)
+            if res.returncode == 0:
+                return "pactl"
+        except Exception:
+            pass
     return "mixer"
 
 
@@ -102,17 +117,23 @@ def run_audio_action(
 
     if notify and shutil.which("notify-send") and action in ("up", "down", "mute"):
         icon = "󰝟 Muted" if info["muted"] else f"󰕾 Volume {info['volume']}%"
-        subprocess.run(
-            [
-                "notify-send",
-                "-a",
-                "DETech OSD",
-                "-h",
-                f"int:value:{info['volume']}",
-                "-h",
-                "string:x-canonical-private-synchronous:audio",
-                icon,
-            ],
-            check=False,
-        )
+        try:
+            subprocess.Popen(
+                [
+                    "notify-send",
+                    "-t",
+                    "1500",
+                    "-a",
+                    "DETech OSD",
+                    "-h",
+                    f"int:value:{info['volume']}",
+                    "-h",
+                    "string:x-canonical-private-synchronous:audio",
+                    icon,
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            pass
     return info

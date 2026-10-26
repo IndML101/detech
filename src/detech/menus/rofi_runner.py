@@ -16,6 +16,7 @@ def run_rofi_dmenu(
     theme_file: Path | None = None,
     show_icons: bool = False,
     theme_str: str | None = None,
+    password: bool = False,
 ) -> str | None:
     """Display `entries` in Rofi dmenu mode and return the selected line (or None if cancelled)."""
     if not shutil.which("rofi"):
@@ -23,6 +24,8 @@ def run_rofi_dmenu(
 
     menu_rasi = theme_file or (get_xdg_config_dir() / "rofi" / "menu.rasi")
     cmd = ["rofi", "-dmenu", "-i", "-p", prompt]
+    if password:
+        cmd.append("-password")
     if show_icons:
         cmd.append("-show-icons")
     if mesg:

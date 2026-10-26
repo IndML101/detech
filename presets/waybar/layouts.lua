@@ -16,7 +16,7 @@ return {
             clock_format = " {:%H:%M}",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "custom/media", "hyprland/window" },
             modules_center = { "custom/calendar", "clock", "custom/weather" },
-            modules_right = { "custom/bsd-pkg", "custom/bsd-net", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-backlight", "custom/bsd-battery", "custom/clipboard", "custom/dnd", "tray", "custom/bsd-power" },
+            modules_right = { "custom/bsd-pkg", "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-backlight", "custom/bsd-battery", "custom/clipboard", "custom/dnd", "tray", "custom/bsd-power" },
         },
         {
             id = "minimal-bar",
@@ -31,7 +31,7 @@ return {
             clock_format = "{:%H:%M}",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "hyprland/window" },
             modules_center = { "custom/calendar", "clock", "custom/weather" },
-            modules_right = { "custom/bsd-net", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray" },
+            modules_right = { "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray" },
         },
         {
             id = "dock-bottom",
@@ -91,7 +91,7 @@ return {
             clock_format = " {:%H:%M}",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "custom/media" },
             modules_center = { "custom/calendar", "clock", "custom/weather" },
-            modules_right = { "custom/bsd-net", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray", "custom/bsd-power" },
+            modules_right = { "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray", "custom/bsd-power" },
         },
         {
             id = "cyber-angled",
@@ -106,7 +106,7 @@ return {
             clock_format = "󰥔 {:%H:%M:%S}",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "custom/bsd-pkg", "custom/bsd-uptime" },
             modules_center = { "custom/calendar", "clock", "custom/weather" },
-            modules_right = { "custom/bsd-net", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-backlight", "custom/bsd-battery", "custom/dnd", "tray" },
+            modules_right = { "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-backlight", "custom/bsd-battery", "custom/dnd", "tray" },
         },
         {
             id = "compact-center",
@@ -136,7 +136,7 @@ return {
             clock_format = " {:%H:%M}",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "hyprland/window" },
             modules_center = { "custom/calendar", "clock", "custom/weather" },
-            modules_right = { "custom/bsd-zfs", "custom/bsd-pkg", "custom/bsd-net", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray" },
+            modules_right = { "custom/bsd-zfs", "custom/bsd-pkg", "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray" },
             secondary_bar = {
                 position = "bottom",
                 height = 30,
@@ -159,7 +159,7 @@ return {
             clock_format = "[{:%Y-%m-%d %H:%M}]",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "custom/bsd-uptime" },
             modules_center = { "hyprland/window" },
-            modules_right = { "custom/weather", "custom/bsd-zfs", "custom/bsd-net", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray", "clock" },
+            modules_right = { "custom/weather", "custom/bsd-zfs", "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray", "clock" },
         },
         {
             id = "glass-full",
@@ -174,7 +174,7 @@ return {
             clock_format = " {:%H:%M}",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "custom/media", "hyprland/window" },
             modules_center = { "custom/calendar", "clock", "custom/weather" },
-            modules_right = { "custom/bsd-pkg", "custom/bsd-net", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/clipboard", "custom/dnd", "tray", "custom/bsd-power" },
+            modules_right = { "custom/bsd-pkg", "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/clipboard", "custom/dnd", "tray", "custom/bsd-power" },
         },
         {
             id = "workspace-centric",
@@ -189,7 +189,7 @@ return {
             clock_format = " {:%H:%M}",
             modules_left = { "custom/bsd-logo", "custom/calendar", "clock", "custom/weather", "hyprland/window" },
             modules_center = { "hyprland/workspaces" },
-            modules_right = { "custom/bsd-net", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray", "custom/bsd-power" },
+            modules_right = { "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray", "custom/bsd-power" },
         },
         {
             id = "capsules-dark",
@@ -204,7 +204,7 @@ return {
             clock_format = "󰥔 {:%H:%M}",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "custom/bsd-pkg", "custom/media" },
             modules_center = { "custom/calendar", "clock", "custom/weather" },
-            modules_right = { "custom/bsd-net", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray", "custom/bsd-power" },
+            modules_right = { "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-audio", "custom/bsd-battery", "custom/dnd", "tray", "custom/bsd-power" },
         },
         {
             id = "zen-status",
@@ -234,7 +234,7 @@ return {
             clock_format = " {:%H:%M:%S}",
             modules_left = { "custom/bsd-logo", "hyprland/workspaces", "custom/bsd-zfs", "custom/bsd-pkg", "custom/bsd-uptime" },
             modules_center = { "custom/calendar", "clock", "custom/weather" },
-            modules_right = { "custom/bsd-net", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-backlight", "custom/bsd-audio", "custom/bsd-battery", "custom/clipboard", "custom/dnd", "tray", "custom/bsd-power" },
+            modules_right = { "custom/bsd-net", "custom/bsd-bluetooth", "custom/bsd-load", "custom/bsd-mem", "custom/bsd-temp", "custom/bsd-backlight", "custom/bsd-audio", "custom/bsd-battery", "custom/clipboard", "custom/dnd", "tray", "custom/bsd-power" },
         },
     },
 }

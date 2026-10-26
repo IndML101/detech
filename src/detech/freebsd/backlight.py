@@ -53,17 +53,23 @@ def run_backlight_action(
     level = parse_backlight_output(proc.stdout)
 
     if notify and shutil.which("notify-send") and action in ("up", "down", "set"):
-        subprocess.run(
-            [
-                "notify-send",
-                "-a",
-                "DETech OSD",
-                "-h",
-                f"int:value:{level}",
-                "-h",
-                "string:x-canonical-private-synchronous:backlight",
-                f"󰃠 Brightness {level}%",
-            ],
-            check=False,
-        )
+        try:
+            subprocess.Popen(
+                [
+                    "notify-send",
+                    "-t",
+                    "1500",
+                    "-a",
+                    "DETech OSD",
+                    "-h",
+                    f"int:value:{level}",
+                    "-h",
+                    "string:x-canonical-private-synchronous:backlight",
+                    f"󰃠 Brightness {level}%",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            pass
     return {"brightness": level}

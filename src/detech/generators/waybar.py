@@ -198,6 +198,15 @@ def build_waybar_config_dict(spec: dict[str, Any]) -> dict[str, Any]:
             "exec": "detech bsd widgets network --json",
             "return-type": "json",
             "interval": 10,
+            "on-click": "detech menu wifi",
+            "on-click-right": "detech menu wifi",
+        },
+        "custom/bsd-bluetooth": {
+            "exec": "detech bsd widgets bluetooth --json",
+            "return-type": "json",
+            "interval": 5,
+            "on-click": "detech menu bluetooth",
+            "tooltip": True,
         },
         "custom/media": {
             "exec": "detech bsd widgets media --json",
@@ -266,6 +275,7 @@ def build_waybar_config_dict(spec: dict[str, Any]) -> dict[str, Any]:
             "return-type": "json",
             "interval": 5,
             "on-click": "detech bsd audio mute",
+            "on-click-right": "pavucontrol",
             "on-scroll-up": "detech bsd audio up 5",
             "on-scroll-down": "detech bsd audio down 5",
         },
@@ -352,7 +362,7 @@ def render_waybar_css(
 
     all_module_selectors = (
         "#custom-bsd-logo, #workspaces, #window, #clock, "
-        "#custom-calendar, #custom-weather, #custom-bsd-net, #custom-media, "
+        "#custom-calendar, #custom-weather, #custom-bsd-net, #custom-bsd-bluetooth, #custom-media, "
         "#custom-dnd, #custom-notifications, #custom-bsd-uptime, #custom-clipboard, "
         "#custom-bsd-battery, #custom-bsd-temp, #custom-bsd-load, "
         "#custom-bsd-mem, #custom-bsd-zfs, #custom-bsd-audio, "
@@ -476,6 +486,14 @@ def render_waybar_css(
         "",
         "#custom-bsd-net.disconnected {",
         "    color: @urgent;",
+        "}",
+        "",
+        "#custom-bsd-bluetooth.off {",
+        "    color: @fg_muted;",
+        "}",
+        "",
+        "#custom-bsd-bluetooth.connected {",
+        "    color: @success;",
         "}",
         "",
         "tooltip {",

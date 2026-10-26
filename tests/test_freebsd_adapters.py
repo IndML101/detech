@@ -139,3 +139,23 @@ def test_freebsd_and_waybar_widgets() -> None:
     assert hist[0]["id"] == "12"
     assert hist[0]["app"] == "Firefox"
     assert hist[0]["summary"] == "Download Complete"
+
+
+def test_freebsd_wifi_and_bluetooth_adapters() -> None:
+    from detech.freebsd.wifi import dbm_to_percentage, get_signal_icon
+    from detech.freebsd.bluetooth import get_bluetooth_status
+
+    assert dbm_to_percentage(-50) == 100
+    assert dbm_to_percentage(-75) == 50
+    assert dbm_to_percentage(-100) == 0
+
+    assert get_signal_icon(80) == "󰤨"
+    assert get_signal_icon(60) == "󰤥"
+    assert get_signal_icon(30) == "󰤢"
+    assert get_signal_icon(10) == "󰤟"
+
+    bt_status = get_bluetooth_status("ubt0hci")
+    assert "node" in bt_status
+    assert "class" in bt_status
+    assert "text" in bt_status
+

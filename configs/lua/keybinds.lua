@@ -36,6 +36,8 @@ return {
         { mod = {mod}, key = "Y", action = "exec", arg = "detech menu clipboard", category = "Widgets", desc = "Open Clipboard History Picker (cliphist)" },
         { mod = {mod}, key = "O", action = "exec", arg = "detech menu notifications", category = "Widgets", desc = "Open Notification Center (Dunst)" },
         { mod = {mod, "SHIFT"}, key = "N", action = "exec", arg = "detech bsd widgets dnd toggle", category = "Widgets", desc = "Toggle Do Not Disturb (Dunst)" },
+        { mod = {mod}, key = "I", action = "exec", arg = "detech menu wifi", category = "Widgets", desc = "Open Wi-Fi Network Picker" },
+        { mod = {mod}, key = "U", action = "exec", arg = "detech menu bluetooth", category = "Widgets", desc = "Open Bluetooth Device Manager" },
 
         -- Window Management & Layout
         { mod = {mod}, key = "V", action = "togglefloating", arg = "", category = "Window", desc = "Toggle Floating Window" },

@@ -424,10 +424,16 @@ def generate_hypr_configs(
         key = bind.get("key", "")
         action, arg = normalize_keybind_action(bind.get("action", "exec"), bind.get("arg", ""))
         desc = bind.get("desc", "")
+        bind_cmd = "bind"
+        if key.startswith("XF86"):
+            if "Mute" in key:
+                bind_cmd = "bindl"
+            else:
+                bind_cmd = "bindel"
         if arg:
-            binds_lines.append(f"bind = {mods}, {key}, {action}, {arg} # {desc}")
+            binds_lines.append(f"{bind_cmd} = {mods}, {key}, {action}, {arg} # {desc}")
         else:
-            binds_lines.append(f"bind = {mods}, {key}, {action} # {desc}")
+            binds_lines.append(f"{bind_cmd} = {mods}, {key}, {action} # {desc}")
     binds_lines.extend(
         [
             "bind = $mainMod, mouse_down, workspace, e+1",
