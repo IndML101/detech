@@ -99,7 +99,13 @@ if [ "$OS_NAME" = "FreeBSD" ]; then
         if grep -q "Ly:" /etc/gettytab 2>/dev/null; then
             run_cmd "$PRIV_CMD" sed -i '' '/^Ly:/,/^# End/d' /etc/gettytab 2>/dev/null || true
         fi
-        run_cmd "$PRIV_CMD" sh -c "printf '\nLy:\\\\\\\n\t:lo=/usr/local/bin/ly_wrapper:\\\\\\\n\t:al=root:\n# End Ly entry\n' >> /etc/gettytab"
+        run_cmd "$PRIV_CMD" sh -c "cat << 'EOF' >> /etc/gettytab
+
+Ly:\
+	:lo=/usr/local/bin/ly_wrapper:\
+	:al=root:
+# End Ly entry
+EOF"
     fi
 
     # Ensure /etc/ttys has ttyv1 configured for Ly

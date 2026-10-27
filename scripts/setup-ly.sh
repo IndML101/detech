@@ -28,14 +28,21 @@ fi
 
 # 2. Configure /etc/gettytab with ly_wrapper
 echo "[2/5] Updating /etc/gettytab to use ly_wrapper..."
-if grep -q "ly_wrapper" /etc/gettytab 2>/dev/null; then
-    echo "  -> /etc/gettytab already contains ly_wrapper."
+if grep -q ":lo=/usr/local/bin/ly_wrapper:" /etc/gettytab 2>/dev/null && ! grep -q "Ly:\\\\n" /etc/gettytab 2>/dev/null; then
+    echo "  -> /etc/gettytab already contains properly formatted ly_wrapper entry."
 else
-    # Remove older un-wrapped Ly entry if present
-    if grep -q "Ly:" /etc/gettytab 2>/dev/null; then
+    # Remove older/malformed Ly entry if present
+    if grep -qi "Ly" /etc/gettytab 2>/dev/null; then
         sed -i '' '/^Ly:/,/^# End/d' /etc/gettytab 2>/dev/null || true
+        sed -i '' '/^Ly:\\n/d' /etc/gettytab 2>/dev/null || true
     fi
-    printf "\nLy:\\\n\t:lo=/usr/local/bin/ly_wrapper:\\\n\t:al=root:\n# End Ly entry\n" >> /etc/gettytab
+    cat << 'EOF' >> /etc/gettytab
+
+Ly:\
+	:lo=/usr/local/bin/ly_wrapper:\
+	:al=root:
+# End Ly entry
+EOF
     echo "  -> Added Ly with ly_wrapper to /etc/gettytab."
 fi
 
