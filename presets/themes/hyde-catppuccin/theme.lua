@@ -5,6 +5,7 @@ return {
     variant = "dark",
     gtk_theme = "Catppuccin-Mocha-Standard-Lavender-Dark",
     icon_theme = "Catppuccin-SE",
+    folder_color = "violet",
     cursor_theme = "Bibata-Modern-Ice",
     kvantum_theme = "Catppuccin-Mocha-Lavender",
     default_waybar = "dock-bottom",

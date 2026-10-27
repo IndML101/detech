@@ -256,15 +256,15 @@ def render_gtk2_gtkrc(
 
 def render_gtk_css(palette: dict[str, str]) -> str:
     """Render a comprehensive GTK-3.0 / GTK-4.0 & Libadwaita dark theme CSS asset bundle."""
-    bg_pri = palette["bg_primary"]
-    bg_sec = palette["bg_secondary"]
-    bg_ter = palette["bg_tertiary"]
-    fg_pri = palette["fg_primary"]
-    fg_sec = palette["fg_secondary"]
-    fg_muted = palette["fg_muted"]
-    accent = palette["accent"]
-    accent_alt = palette["accent_alt"]
-    urgent = palette["urgent"]
+    bg_pri = palette.get("bg_primary", "#110d10")
+    bg_sec = palette.get("bg_secondary", "#1c1419")
+    bg_ter = palette.get("bg_tertiary", "#281c23")
+    fg_pri = palette.get("fg_primary", "#f5e9ec")
+    fg_sec = palette.get("fg_secondary", fg_pri)
+    fg_muted = palette.get("fg_muted", fg_sec)
+    accent = palette.get("accent", "#e63946")
+    accent_alt = palette.get("accent_alt", accent)
+    urgent = palette.get("urgent", "#ffb703")
     success = palette.get("success", "#52b788")
     warning = palette.get("warning", "#f4a261")
     bdr = palette.get("border_inactive", bg_ter)
@@ -463,6 +463,34 @@ def render_gtk_css(palette: dict[str, str]) -> str:
         "}",
         "separator {",
         "    background-color: @borders;",
+        "}",
+        "",
+        "/* Thunar File Manager & Directory View Theming */",
+        "window.thunar, thunar-window, .thunar, ThunarWindow {",
+        "    background-color: @window_bg_color;",
+        "    color: @window_fg_color;",
+        "}",
+        "thunar .view, .thunar view, ThunarIconView, ThunarTreeView, .thunar .standard-view {",
+        "    background-color: @view_bg_color;",
+        "    color: @view_fg_color;",
+        "}",
+        "thunar .sidebar, .thunar .sidebar, placessidebar {",
+        "    background-color: @sidebar_bg_color;",
+        "    color: @sidebar_fg_color;",
+        "}",
+        "thunar .view:selected, ThunarIconView:selected, .thunar .view row:selected {",
+        "    background-color: @accent_bg_color;",
+        "    color: @accent_fg_color;",
+        "}",
+        ".thunar path-bar button, thunar path-bar button {",
+        "    background-color: @card_bg_color;",
+        "    color: @theme_text_color;",
+        "    border-radius: 4px;",
+        "    margin: 2px;",
+        "}",
+        ".thunar path-bar button:checked, thunar path-bar button:checked {",
+        "    background-color: @accent_bg_color;",
+        "    color: @accent_fg_color;",
         "}",
     ]
     return "\n".join(lines) + "\n"

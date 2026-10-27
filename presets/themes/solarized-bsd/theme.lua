@@ -5,6 +5,7 @@ return {
     variant = "dark",
     gtk_theme = "NumixSolarizedDarkCyan",
     icon_theme = "Papirus-Dark",
+    folder_color = "teal",
     cursor_theme = "Bibata-Modern-Ice",
     kvantum_theme = "DETech",
     default_waybar = "freebsd-telemetry",

@@ -22,6 +22,7 @@ return {
         { mod = {mod, "SHIFT"}, key = "W", action = "exec", arg = "detech menu wallpapers", category = "DETech", desc = "Pick Wallpaper & Sync Colors" },
         { mod = {mod, "SHIFT"}, key = "F", action = "exec", arg = "detech menu fonts", category = "DETech", desc = "Nerd Fonts Picker & Installer" },
         { mod = {mod, "SHIFT"}, key = "I", action = "exec", arg = "detech menu icons", category = "DETech", desc = "Icon Theme Picker" },
+        { mod = {mod, "SHIFT"}, key = "X", action = "exec", arg = "detech menu cursors", category = "DETech", desc = "Cursor Theme & Trackpad Size Picker" },
         { mod = {mod, "SHIFT"}, key = "C", action = "exec", arg = "detech menu colors", category = "DETech", desc = "Color Scheme & Dynamic Mode Picker" },
         { mod = {mod, "SHIFT"}, key = "B", action = "exec", arg = "detech menu waybar", category = "DETech", desc = "Switch Waybar Layout (15 Presets)" },
         { mod = {mod, "SHIFT"}, key = "R", action = "exec", arg = "detech menu rofi-layout", category = "DETech", desc = "Switch Rofi App Drawer Layout (15 Presets)" },

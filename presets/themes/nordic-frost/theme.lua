@@ -5,6 +5,7 @@ return {
     variant = "dark",
     gtk_theme = "Nordic",
     icon_theme = "Papirus-Dark",
+    folder_color = "nordic",
     cursor_theme = "Bibata-Modern-Ice",
     kvantum_theme = "KvNordArc",
     default_waybar = "split-wings",

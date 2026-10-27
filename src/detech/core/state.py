@@ -25,6 +25,9 @@ class RuntimeState:
     hyprlock_layout: str | None = None
     plugin_preset: str | None = None
     icon_theme: str | None = None
+    folder_color: str | None = None
+    cursor_theme: str | None = None
+    cursor_size: int | None = None
     font_mono: str | None = None
     font_sans: str | None = None
     font_size: int | None = None
@@ -97,6 +100,12 @@ def get_effective_context(state_path: Path | None = None) -> dict[str, Any]:
         plugins_cfg["preset"] = state.plugin_preset
     if state.icon_theme is not None:
         appearance["icon_theme"] = state.icon_theme
+    if state.folder_color is not None:
+        appearance["folder_color"] = state.folder_color
+    if state.cursor_theme is not None:
+        appearance["cursor_theme"] = state.cursor_theme
+    if state.cursor_size is not None:
+        appearance["cursor_size"] = int(state.cursor_size)
     if state.wallpaper is not None:
         appearance["wallpaper"] = state.wallpaper
 

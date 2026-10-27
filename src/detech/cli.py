@@ -57,7 +57,23 @@ from detech.menus.layout_menu import (
 )
 from detech.menus.pkg_menu import open_software_menu
 from detech.menus.rofi_runner import launch_app_drawer
-from detech.menus.theme_menu import list_icon_themes, open_color_scheme_menu, open_icon_menu, open_theme_menu
+from detech.core.cursor_manager import (
+    TRACKPAD_CURSOR_SIZES,
+    list_cursor_themes,
+)
+from detech.core.folder_colors import (
+    PAPIRUS_FOLDER_COLORS,
+    resolve_folder_color,
+)
+from detech.menus.theme_menu import (
+    list_icon_themes,
+    open_color_scheme_menu,
+    open_cursor_menu,
+    open_cursor_size_menu,
+    open_folder_color_menu,
+    open_icon_menu,
+    open_theme_menu,
+)
 from detech.menus.wallpaper_menu import open_wallpaper_menu
 from detech.menus.screenshot_menu import open_screenshot_menu
 from detech.screenshot import capture_screenshot
@@ -105,6 +121,9 @@ def build_parser() -> argparse.ArgumentParser:
             "plugins",
             "font",
             "icon",
+            "cursor",
+            "cursor-size",
+            "folder-color",
             "wallpaper",
             "dynamic-colors",
             "neofetch",
@@ -114,7 +133,7 @@ def build_parser() -> argparse.ArgumentParser:
         ],
     )
     p_set.add_argument("value", help="New value for the target setting")
-    p_set.add_argument("--size", type=int, default=None, help="Font size in pt (when setting font)")
+    p_set.add_argument("--size", type=int, default=None, help="Font or cursor size (when setting font or cursor)")
     p_set.add_argument("--output-dir", type=Path, default=None, help="Override target XDG ~/.config directory")
     p_set.add_argument("--no-reload", action="store_true", help="Skip live daemon reload")
 
@@ -144,7 +163,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_list = sub.add_parser("list", help="List available themes, layouts, prompts, plugins, Nerd Fonts, icons, or keybinds")
     p_list.add_argument(
         "category",
-        choices=["themes", "waybar", "rofi", "starship", "hyprlock", "plugins", "fonts", "icons", "keybinds", "glyphs"],
+        choices=[
+            "themes",
+            "waybar",
+            "rofi",
+            "starship",
+            "hyprlock",
+            "plugins",
+            "fonts",
+            "icons",
+            "cursors",
+            "folder-colors",
+            "keybinds",
+            "glyphs",
+        ],
     )
 
     # detech menu <menu_name>
@@ -158,6 +190,11 @@ def build_parser() -> argparse.ArgumentParser:
             "wallpapers",
             "fonts",
             "icons",
+            "cursor",
+            "cursors",
+            "cursor-size",
+            "folder-color",
+            "folder-colors",
             "colors",
             "waybar",
             "rofi-layout",
@@ -176,6 +213,21 @@ def build_parser() -> argparse.ArgumentParser:
             "screenshot",
         ],
     )
+
+    # detech cursor [theme]
+    p_cur = sub.add_parser("cursor", help="Select or list cursor themes for trackpad & high-DPI")
+    p_cur.add_argument("theme", nargs="?", default=None, help="Cursor theme name to apply")
+    p_cur.add_argument("--size", type=int, default=None, help="Cursor size in px (e.g. 24, 28, 32, 36, 48)")
+    p_cur.add_argument("--list", action="store_true", help="List available cursor themes")
+
+    # detech folder-color [color]
+    p_fc = sub.add_parser("folder-color", help="Set or list Thunar theme-matched folder icon colors")
+    p_fc.add_argument("color", nargs="?", default=None, help="Folder color (e.g. auto, carmine, red, cyan, green, violet)")
+    p_fc.add_argument("--list", action="store_true", help="List available folder color variants")
+
+    # detech term-colors
+    p_tc = sub.add_parser("term-colors", help="Synchronize active theme colors to terminal via OSC escape codes")
+    p_tc.add_argument("--print", action="store_true", help="Print escape code sequences to stdout")
 
     # detech bsd <subsystem>
     p_bsd = sub.add_parser("bsd", help="FreeBSD hardware & OS integration commands")
@@ -235,6 +287,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             "hyprlock_layout": appearance.get("hyprlock_layout", "minimal-clock"),
             "plugin_preset": ctx.get("plugins", {}).get("preset", "minimal-expo"),
             "icon_theme": appearance.get("icon_theme", theme_data.get("icon_theme", "Papirus-Dark")),
+            "folder_color": appearance.get("folder_color", theme_data.get("folder_color", "auto")),
+            "cursor_theme": appearance.get("cursor_theme", theme_data.get("cursor_theme", "Bibata-Modern-Ice")),
+            "cursor_size": appearance.get("cursor_size", 24),
             "font_mono": fonts["mono"],
             "font_sans": fonts["sans"],
             "font_size": fonts["size"],
@@ -332,6 +387,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             update_state(plugin_preset=val)
         elif t == "icon":
             update_state(icon_theme=val)
+        elif t == "cursor":
+            updates = {"cursor_theme": val}
+            if args.size is not None:
+                updates["cursor_size"] = args.size
+            update_state(**updates)
+        elif t == "cursor-size":
+            update_state(cursor_size=int(val))
+        elif t == "folder-color":
+            update_state(folder_color=val)
         elif t == "wallpaper":
             update_state(wallpaper=str(Path(val).expanduser().resolve()), dynamic_wallpaper_colors=True)
         elif t == "dynamic-colors":
@@ -392,6 +456,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             for item in list_icon_themes(active_icon=cur_icon):
                 status = "active" if item["active"] else ("installed" if item["installed"] else "available")
                 print(f"{item['id']:<22} [{status:<9}] — {item['description']} (pkg: {item['pkg']})")
+        elif cat == "cursors":
+            ctx = get_effective_context()
+            cur_cursor = ctx.get("config", {}).get("appearance", {}).get("cursor_theme", "Bibata-Modern-Ice")
+            for item in list_cursor_themes(active_cursor=cur_cursor):
+                status = "active" if item["active"] else ("installed" if item["installed"] else "available")
+                opt = " [trackpad-optimized]" if item["trackpad_optimized"] else ""
+                print(f"{item['id']:<28} [{status:<9}]{opt} — {item['description']} (pkg: {item['pkg']})")
+        elif cat == "folder-colors":
+            ctx = get_effective_context()
+            cur_fc = ctx.get("config", {}).get("appearance", {}).get("folder_color", "auto")
+            print(f"{'auto':<16} [{'active' if cur_fc == 'auto' else 'available':<9}] — Automatically match theme accent palette")
+            for cname, info in PAPIRUS_FOLDER_COLORS.items():
+                status = "active" if cname == cur_fc else "available"
+                print(f"{cname:<16} [{status:<9}] — {info['name']} (Hex: {info['hex']})")
         elif cat == "keybinds":
             for item in format_keybind_entries():
                 print(item["label"])
@@ -414,6 +492,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             open_font_menu()
         elif m == "icons":
             open_icon_menu()
+        elif m in ("cursor", "cursors"):
+            open_cursor_menu()
+        elif m == "cursor-size":
+            open_cursor_size_menu()
+        elif m in ("folder-color", "folder-colors"):
+            open_folder_color_menu()
         elif m == "colors":
             open_color_scheme_menu()
         elif m == "waybar":
@@ -451,6 +535,60 @@ def main(argv: Sequence[str] | None = None) -> int:
             open_bluetooth_menu()
         elif m == "screenshot":
             open_screenshot_menu()
+        return 0
+
+    if args.command == "cursor":
+        if args.list:
+            ctx = get_effective_context()
+            cur_cursor = ctx.get("config", {}).get("appearance", {}).get("cursor_theme", "Bibata-Modern-Ice")
+            for item in list_cursor_themes(active_cursor=cur_cursor):
+                status = "active" if item["active"] else ("installed" if item["installed"] else "available")
+                opt = " [trackpad-optimized]" if item["trackpad_optimized"] else ""
+                print(f"{item['id']:<28} [{status:<9}]{opt} — {item['description']}")
+            return 0
+        if args.theme:
+            updates: dict[str, object] = {"cursor_theme": args.theme}
+            if args.size is not None:
+                updates["cursor_size"] = args.size
+            update_state(**updates)
+            compile_all(reload_daemons=True)
+            print(f"✓ Applied cursor theme: {args.theme}" + (f" ({args.size}px)" if args.size else ""))
+            return 0
+        open_cursor_menu()
+        return 0
+
+    if args.command == "folder-color":
+        if args.list:
+            ctx = get_effective_context()
+            cur_fc = ctx.get("config", {}).get("appearance", {}).get("folder_color", "auto")
+            print(f"{'auto':<16} [{'active' if cur_fc == 'auto' else 'available':<9}] — Automatically match theme accent palette")
+            for cname, info in PAPIRUS_FOLDER_COLORS.items():
+                status = "active" if cname == cur_fc else "available"
+                print(f"{cname:<16} [{status:<9}] — {info['name']} (Hex: {info['hex']})")
+            return 0
+        if args.color:
+            update_state(folder_color=args.color)
+            compile_all(reload_daemons=True)
+            print(f"✓ Applied Thunar folder color: {args.color}")
+            return 0
+        open_folder_color_menu()
+        return 0
+
+    if args.command == "term-colors":
+        ctx = get_effective_context()
+        _, palette = resolve_active_palette(ctx)
+        from detech.generators.terminal_shell import render_term_colors_sh
+        script = render_term_colors_sh(palette)
+        if args.print:
+            print(script, end="")
+        else:
+            for line in script.splitlines():
+                if line.startswith("printf "):
+                    seq = line.split("printf ")[1].strip("'\"")
+                    formatted = seq.replace("\\033", "\x1b").replace("\\007", "\x07")
+                    sys.stdout.write(formatted)
+            sys.stdout.flush()
+            print("✓ Synchronized terminal text color palette with active DETech theme.")
         return 0
 
     if args.command == "screenshot":

@@ -36,8 +36,15 @@ Users configure their entire desktop through clean, declarative **Lua configurat
   - **15 Starship Prompt Presets**: Tokyo pill, minimal lambda, BSD devil, powerlines, git status, and clean prompts.
   - **6 Official Hyprland Plugin Presets**: Hyprexpo workspace overview, Hyprbars titlebars, Hyprtrails motion trails, Hyprwinwrap desktop widgets, and `csgo-vulkan-fix`.
   - **4 Hyprlock Screen Lock Layouts**: Minimal clock, BSD fortress, HyDE card, and Ryoku zen.
-- **System-Wide Icon Themes**:
+- **System-Wide Icon & Folder Themes**:
   - 12 curated icon packs (`Papirus-Dark`, `Papirus-Light`, `Papirus`, `Tela-circle-dark`, `Tela-circle`, `Catppuccin-SE`, `Gruvbox-Plus-Dark`, `TokyoNight-SE`, `Nordzy-dark`, `Qogir-dark`, `Breeze-Dark`, `Numix-Circle`, `Adwaita`) plus automatic discovery of custom icon packs in `/usr/local/share/icons` and `~/.local/share/icons`.
+  - **Thunar Theme-Colored Folder Icons**: Automatically synchronizes folder icons in Thunar and GTK file choosers with the active theme palette (`carmine`, `magenta`, `violet`, `green`, `teal`, `cyan`, `orange`, `indigo`, `nordic`) or dynamic wallpaper accent color, complete with GTK-3 CSS styling and instant cache updating.
+- **Cursor Icon Themes & Trackpad Pointer Sizing**:
+  - 18 curated cursor packs (`Bibata-Modern-Ice`, `Bibata-Modern-Classic`, `Bibata-Modern-Amber`, `Catppuccin-Mocha-Dark`, `Catppuccin-Mocha-Lavender`, `Nordzy-cursors`, `Capitaine-Cursors`, `BreezeX-Black`, `Qogir-cursors`, etc.) with interactive Rofi picker (`SUPER + SHIFT + X`).
+  - Trackpad-optimized pointer scaling (`24px`, `28px`, `32px`, `36px`, `48px`) and full Hyprland touchpad configuration (`tap-to-click`, `natural_scroll`, `drag_lock`, `middle_button_emulation`, `scroll_factor`).
+- **Dynamic Terminal Text & ANSI Color Palettes**:
+  - Real-time color palette generation for **Kitty** (`kitty/detech-theme.conf`), **Alacritty** (`alacritty/detech-theme.toml`), and **Foot** (`foot/detech-theme.ini`).
+  - Native terminal OSC escape sequence broadcaster (`detech/term-colors.sh` & `detech term-colors`) emitting OSC 10 (foreground), OSC 11 (background), OSC 12 (cursor), and OSC 4 (16 ANSI colors) to update running terminals live without restarts.
 - **Nerd Fonts Manager & Installer**:
   - Built-in catalog of 16+ Nerd Fonts with `fc-list` discovery and one-click downloader/installer into `~/.local/share/fonts/NerdFonts/`.
   - Updates font family and sizes simultaneously across Kitty, Waybar, Rofi, Hyprlock, Dunst, GTK, and Qt.
@@ -139,6 +146,7 @@ All shortcuts can be searched and executed directly via the **Keybind Search & R
 | `SUPER + SHIFT + W` | `detech menu wallpapers` | Wallpaper Picker (with 64px icon previews & color sync) |
 | `SUPER + SHIFT + F` | `detech menu fonts` | Nerd Fonts Picker & Installer |
 | `SUPER + SHIFT + I` | `detech menu icons` | Icon Theme Picker |
+| `SUPER + SHIFT + X` | `detech menu cursors` | Cursor Theme & Trackpad Size Picker (18 cursor packs, 24-48px) |
 | `SUPER + SHIFT + C` | `detech menu colors` | Color Scheme & Dynamic Extraction Mode Picker |
 | `SUPER + SHIFT + B` | `detech menu waybar` | Switch Waybar Layout (15 presets) |
 | `SUPER + SHIFT + R` | `detech menu rofi-layout` | Switch Rofi App Drawer Layout (15 presets) |

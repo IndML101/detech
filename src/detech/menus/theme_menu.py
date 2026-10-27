@@ -7,6 +7,8 @@ from typing import Any
 
 from detech.core.color_engine import list_themes
 from detech.core.compiler import compile_all
+from detech.core.cursor_manager import TRACKPAD_CURSOR_SIZES, list_cursor_themes
+from detech.core.folder_colors import PAPIRUS_FOLDER_COLORS
 from detech.core.state import get_effective_context, update_state
 from detech.menus.rofi_runner import run_rofi_dmenu
 
@@ -120,6 +122,8 @@ def open_theme_menu() -> dict[str, Any] | None:
             update_state(
                 theme=item["name"],
                 icon_theme=t.get("icon_theme", "Papirus-Dark"),
+                folder_color=t.get("folder_color", "auto"),
+                cursor_theme=t.get("cursor_theme", "Bibata-Modern-Ice"),
                 waybar_layout=t.get("default_waybar", "island-top"),
                 rofi_layout=t.get("default_rofi", "grid-cards"),
                 starship_preset=t.get("default_starship", "tokyo-pill"),
@@ -195,4 +199,97 @@ def open_icon_menu() -> str | None:
             update_state(icon_theme=pack_id)
             compile_all(reload_daemons=True)
             return pack_id
+    return None
+
+
+def open_cursor_menu() -> str | None:
+    """Open Rofi Cursor Theme Picker and update Hyprland, GTK, and trackpad pointer theme."""
+    ctx = get_effective_context()
+    appearance = ctx.get("config", {}).get("appearance", {})
+    current_cursor = appearance.get("cursor_theme", "Bibata-Modern-Ice")
+    current_size = appearance.get("cursor_size", 24)
+
+    rows: list[tuple[str, str | None]] = [
+        (f"󰍽  Trackpad Pointer Size: [{current_size}px] — Change cursor scale", "__size__")
+    ]
+    for item in list_cursor_themes(active_cursor=current_cursor):
+        cid = item["id"]
+        cname = item["name"]
+        badge = "★ Active" if item["active"] else ("Installed" if item["installed"] else "Available")
+        trackpad_tag = " [Trackpad High-DPI]" if item.get("trackpad_optimized") else ""
+        rows.append((f"󰍽  {cname:<26} [{badge:<9}]{trackpad_tag} — {item['description']}", cid))
+
+    chosen = run_rofi_dmenu(
+        [r[0] for r in rows],
+        prompt="󰍽  Cursors",
+        mesg=f"Active Cursor: {current_cursor} ({current_size}px) — Syncs Hyprland, GTK-2/3/4 & Trackpad",
+    )
+    if not chosen:
+        return None
+
+    for label, cid in rows:
+        if label == chosen:
+            if cid == "__size__":
+                return open_cursor_size_menu()
+            update_state(cursor_theme=cid)
+            compile_all(reload_daemons=True)
+            return cid
+    return None
+
+
+def open_cursor_size_menu() -> str | None:
+    """Open Rofi Cursor Size Picker optimized for trackpad gestures and high-DPI displays."""
+    ctx = get_effective_context()
+    current_size = ctx.get("config", {}).get("appearance", {}).get("cursor_size", 24)
+    rows: list[tuple[str, int]] = []
+    for item in TRACKPAD_CURSOR_SIZES:
+        sz = item["size"]
+        badge = "★ Active" if sz == current_size else "Select"
+        rows.append((f"󰍽  {item['label']:<18} [{badge}] — {item['desc']}", sz))
+
+    chosen = run_rofi_dmenu(
+        [r[0] for r in rows],
+        prompt="󰍽  Cursor Size",
+        mesg=f"Active Trackpad Cursor Size: {current_size}px",
+    )
+    if not chosen:
+        return None
+
+    for label, sz in rows:
+        if label == chosen:
+            update_state(cursor_size=sz)
+            compile_all(reload_daemons=True)
+            return str(sz)
+    return None
+
+
+def open_folder_color_menu() -> str | None:
+    """Open Rofi Folder Color Picker for Thunar and GTK file managers."""
+    ctx = get_effective_context()
+    appearance = ctx.get("config", {}).get("appearance", {})
+    current_color = str(appearance.get("folder_color", "auto")).lower()
+
+    rows: list[tuple[str, str]] = [
+        (
+            f"󰉋  Auto (Theme-Matched)  [{'★ Active' if current_color == 'auto' else 'Use Theme Accent'}] — Automatically sync with theme palette",
+            "auto",
+        ),
+    ]
+    for cname, info in PAPIRUS_FOLDER_COLORS.items():
+        badge = "★ Active" if cname == current_color else "Apply"
+        rows.append((f"󰉋  {info['name']:<42} [{badge}] (Hex: {info['hex']})", cname))
+
+    chosen = run_rofi_dmenu(
+        [r[0] for r in rows],
+        prompt="󰉋  Folder Colors",
+        mesg=f"Active Thunar Folder Color: {current_color.upper()} (Syncs Thunar & GTK File Dialogs)",
+    )
+    if not chosen:
+        return None
+
+    for label, cname in rows:
+        if label == chosen:
+            update_state(folder_color=cname)
+            compile_all(reload_daemons=True)
+            return cname
     return None

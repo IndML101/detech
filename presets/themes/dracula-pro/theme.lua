@@ -5,6 +5,7 @@ return {
     variant = "dark",
     gtk_theme = "Dracula",
     icon_theme = "Tela-circle-dark",
+    folder_color = "magenta",
     cursor_theme = "Bibata-Modern-Ice",
     kvantum_theme = "DETech",
     default_waybar = "split-wings",

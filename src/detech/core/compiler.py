@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from detech.core.color_engine import resolve_active_palette
+from detech.core.cursor_manager import apply_cursor_live, sync_default_cursor_theme
+from detech.core.folder_colors import resolve_folder_color, sync_theme_folder_icons
 from detech.core.font_manager import resolve_font_settings
 from detech.core.paths import get_xdg_config_dir
 from detech.core.state import get_effective_context
@@ -39,6 +41,25 @@ def compile_all(
     written_files.extend(generate_terminal_and_shell_configs(context, palette, fonts, target_root))
     written_files.extend(generate_gtk_qt_dunst_configs(context, theme_data, palette, fonts, target_root))
     written_files.extend(generate_ly_configs(context, palette, fonts, target_root))
+
+    # Synchronize theme-colored folder icons for Thunar and GTK file choosers
+    appearance = context.get("config", {}).get("appearance", {})
+    icon_theme = appearance.get("icon_theme") or theme_data.get("icon_theme", "Papirus-Dark")
+    cursor_theme = appearance.get("cursor_theme") or theme_data.get("cursor_theme", "Bibata-Modern-Ice")
+    cursor_size = appearance.get("cursor_size", 24)
+
+    if output_dir is not None:
+        icons_dir = target_root.parent / "share" / "icons"
+        user_icons_legacy = target_root.parent / "icons"
+    else:
+        icons_dir = Path(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))) / "icons"
+        user_icons_legacy = Path.home() / ".icons"
+
+    folder_color = resolve_folder_color(theme_data, palette, appearance)
+    written_files.extend(
+        sync_theme_folder_icons(folder_color, palette, target_icons_dir=icons_dir, base_theme_name=icon_theme)
+    )
+    written_files.append(sync_default_cursor_theme(cursor_theme, target_icons_dir=user_icons_legacy))
 
     if reload_daemons:
         trigger_hot_reload(context, theme_data, fonts, target_root=target_root)
@@ -189,6 +210,14 @@ def trigger_hot_reload(
             if "Invalid dispatcher" in (dsp_res.stdout or ""):
                 subprocess.run(["hyprctl", "dispatch", "exec", wb_cmd], check=False, capture_output=True)
         subprocess.run(["pkill", "-USR1", "kitty"], check=False, capture_output=True)
+        subprocess.run(["pkill", "-USR1", "foot"], check=False, capture_output=True)
+
+    if shutil.which("thunar"):
+        subprocess.run(["thunar", "-q"], check=False, capture_output=True)
+
+    cursor_theme = appearance.get("cursor_theme") or theme_data.get("cursor_theme", "Bibata-Modern-Ice")
+    cursor_size = appearance.get("cursor_size", 24)
+    apply_cursor_live(cursor_theme, cursor_size)
 
     if shutil.which("dunstctl"):
         subprocess.run(["dunstctl", "reload"], check=False, capture_output=True)

@@ -76,8 +76,9 @@ return {
         starship_preset = "tokyo-pill",  -- Active Starship prompt preset (1 of 15)
         hyprlock_layout = "bsd-crimson-guard",-- Active Hyprlock screen lock preset (1 of 14: 10 theme-matched + 4 classic)
         icon_theme = "Papirus-Dark",     -- System-wide icon pack (GTK, Qt, Rofi, Dunst)
-        cursor_theme = "Bibata-Modern-Ice", -- System-wide cursor theme
-        cursor_size = 24,                -- Cursor size in px
+        folder_color = "auto",           -- Theme-matched folder icons in Thunar ("auto", "carmine", "red", "cyan", "green", "violet", "orange", "teal", etc.)
+        cursor_theme = "Bibata-Modern-Ice", -- System-wide cursor theme (Bibata Modern Ice/Classic/Amber, Catppuccin, Nordzy, Capitaine, BreezeX, etc.)
+        cursor_size = 24,                -- Cursor size in px (trackpad sizes: 24, 28, 32, 36, 48)
         gaps_in = 6,                     -- Hyprland inner gaps between windows
         gaps_out = 12,                   -- Hyprland outer gaps from screen edges
         border_size = 2,                 -- Window border width in px
@@ -95,8 +96,17 @@ return {
         kb_variant = "",                 -- Keyboard variant
         kb_options = "caps:escape",      -- XKB options (e.g., Caps Lock as Escape)
         follow_mouse = 1,                -- Window focus follows mouse
-        touchpad_natural_scroll = true,  -- Reverse / natural touchpad scrolling
         sensitivity = 0.0,               -- Mouse sensitivity (-1.0 to 1.0)
+        touchpad = {
+            natural_scroll = true,       -- Reverse / natural touchpad scrolling
+            tap_to_click = true,         -- Tap to click
+            drag_lock = false,           -- Lock drag until next tap
+            tap_and_drag = true,         -- Tap and drag
+            middle_button_emulation = false, -- Emulate middle click with 3-finger tap
+            clickfinger_behavior = false,-- Multi-finger click behavior
+            disable_while_typing = true, -- Prevent accidental palm touches while typing
+            scroll_factor = 1.0,         -- Trackpad scroll multiplier
+        },
     },
     autostart = {                        -- Daemons launched on Hyprland startup
         "waybar",
@@ -201,6 +211,7 @@ return {
         { mod = {mod, "SHIFT"}, key = "W", action = "exec", arg = "detech menu wallpapers", category = "DETech", desc = "Pick Wallpaper & Sync Colors" },
         { mod = {mod, "SHIFT"}, key = "F", action = "exec", arg = "detech menu fonts", category = "DETech", desc = "Nerd Fonts Picker & Installer" },
         { mod = {mod, "SHIFT"}, key = "I", action = "exec", arg = "detech menu icons", category = "DETech", desc = "Icon Theme Picker" },
+        { mod = {mod, "SHIFT"}, key = "X", action = "exec", arg = "detech menu cursors", category = "DETech", desc = "Cursor Theme & Trackpad Size Picker" },
         { mod = {mod, "SHIFT"}, key = "C", action = "exec", arg = "detech menu colors", category = "DETech", desc = "Color Scheme & Dynamic Mode Picker" },
         { mod = {mod, "SHIFT"}, key = "B", action = "exec", arg = "detech menu waybar", category = "DETech", desc = "Switch Waybar Layout (15 Presets)" },
         { mod = {mod, "SHIFT"}, key = "R", action = "exec", arg = "detech menu rofi-layout", category = "DETech", desc = "Switch Rofi App Drawer Layout (15 Presets)" },

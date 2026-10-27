@@ -139,6 +139,13 @@ def render_shell_init_sh(context: dict[str, Any], config_root: Path) -> str:
         f'export DETECH_NEOFETCH="{"1" if enable_neofetch else "0"}"',
         'export COLOR_SCHEME="prefer-dark"',
         "",
+        "        # Synchronize terminal text color palette dynamically with DETech theme",
+        f'        _term_colors="{config_root}/detech/term-colors.sh"',
+        '        if [ -f "$_term_colors" ]; then',
+        '            . "$_term_colors"',
+        "        fi",
+        "        unset _term_colors",
+        "",
         "# Auto-display FreeBSD system information via Neofetch in interactive terminals",
         'case "$-" in',
         "    *i*)",
@@ -351,25 +358,14 @@ def render_starship_toml(spec: dict[str, Any], palette: dict[str, str]) -> str:
     return "\n".join(starship_lines) + "\n"
 
 
-def generate_terminal_and_shell_configs(
-    context: dict[str, Any],
-    palette: dict[str, str],
-    fonts: dict[str, Any],
-    config_root: Path,
-) -> list[Path]:
-    """Generate `kitty/kitty.conf`, `kitty/detech-theme.conf`, `starship.toml`, and all 15 Starship presets."""
-    written: list[Path] = []
-
-    # 1. Kitty configs
-    kitty_dir = config_root / "kitty"
-    kitty_dir.mkdir(parents=True, exist_ok=True)
-
-    kitty_theme = kitty_dir / "detech-theme.conf"
-    theme_lines = [
-        "# DETech Kitty Color Palette",
+def render_kitty_theme(palette: dict[str, str]) -> str:
+    """Render `kitty/detech-theme.conf` synchronized with the active theme color palette."""
+    lines = [
+        "# DETech Kitty Terminal Color Palette",
         f"background {palette['bg_primary']}",
         f"foreground {palette['fg_primary']}",
         f"cursor {palette['accent']}",
+        f"cursor_text_color {palette['bg_primary']}",
         f"selection_background {palette['bg_tertiary']}",
         f"selection_foreground {palette['fg_primary']}",
         f"active_border_color {palette['accent']}",
@@ -378,16 +374,165 @@ def generate_terminal_and_shell_configs(
         f"active_tab_foreground {palette['bg_primary']}",
         f"inactive_tab_background {palette['bg_secondary']}",
         f"inactive_tab_foreground {palette['fg_secondary']}",
+        f"url_color {palette.get('accent_alt', palette['accent'])}",
+        f"visual_bell_color {palette['accent']}",
     ]
     for idx in range(16):
         key = f"color{idx}"
         if key in palette:
-            theme_lines.append(f"{key} {palette[key]}")
-    kitty_theme.write_text("\n".join(theme_lines) + "\n", encoding="utf-8")
+            lines.append(f"{key} {palette[key]}")
+    return "\n".join(lines) + "\n"
+
+
+def render_alacritty_theme(palette: dict[str, str]) -> str:
+    """Render `alacritty/detech-theme.toml` synchronized with active theme palette."""
+    lines = [
+        "# DETech Alacritty Color Palette",
+        "[colors.primary]",
+        f'background = "{palette["bg_primary"]}"',
+        f'foreground = "{palette["fg_primary"]}"',
+        "",
+        "[colors.cursor]",
+        f'text = "{palette["bg_primary"]}"',
+        f'cursor = "{palette["accent"]}"',
+        "",
+        "[colors.selection]",
+        f'text = "{palette["fg_primary"]}"',
+        f'background = "{palette["bg_tertiary"]}"',
+        "",
+        "[colors.normal]",
+        f'black   = "{palette.get("color0", palette["bg_primary"])}"',
+        f'red     = "{palette.get("color1", "#e63946")}"',
+        f'green   = "{palette.get("color2", "#52b788")}"',
+        f'yellow  = "{palette.get("color3", "#f4a261")}"',
+        f'blue    = "{palette.get("color4", "#457b9d")}"',
+        f'magenta = "{palette.get("color5", "#c77dff")}"',
+        f'cyan    = "{palette.get("color6", "#48cae4")}"',
+        f'white   = "{palette.get("color7", palette["fg_primary"])}"',
+        "",
+        "[colors.bright]",
+        f'black   = "{palette.get("color8", palette["bg_tertiary"])}"',
+        f'red     = "{palette.get("color9", "#ff5c6a")}"',
+        f'green   = "{palette.get("color10", "#74c69d")}"',
+        f'yellow  = "{palette.get("color11", "#ffb703")}"',
+        f'blue    = "{palette.get("color12", "#68a3c7")}"',
+        f'magenta = "{palette.get("color13", "#d89eff")}"',
+        f'cyan    = "{palette.get("color14", "#72ddf7")}"',
+        f'white   = "{palette.get("color15", "#ffffff")}"',
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def render_alacritty_conf(fonts: dict[str, Any], general_shell: str | None = None) -> str:
+    """Render `alacritty/alacritty.toml`."""
+    lines = [
+        "# DETech Alacritty Configuration",
+        '[general]',
+        'import = ["~/.config/alacritty/detech-theme.toml"]',
+        "",
+        "[font.normal]",
+        f'family = "{fonts["mono"]}"',
+        'style = "Regular"',
+        "",
+        "[font]",
+        f'size = {fonts["size"]}.0',
+        "",
+        "[window]",
+        "opacity = 0.92",
+        "padding = { x = 10, y = 10 }",
+    ]
+    if general_shell:
+        lines.extend([
+            "",
+            "[terminal.shell]",
+            f'program = "{general_shell}"',
+        ])
+    return "\n".join(lines) + "\n"
+
+
+def render_foot_theme(palette: dict[str, str]) -> str:
+    """Render `foot/detech-theme.ini` synchronized with active theme palette."""
+    lines = [
+        "# DETech Foot Terminal Color Palette",
+        "[colors]",
+        f'background={palette["bg_primary"].lstrip("#")}',
+        f'foreground={palette["fg_primary"].lstrip("#")}',
+        f'regular0={palette.get("color0", palette["bg_primary"]).lstrip("#")}',
+        f'regular1={palette.get("color1", "#e63946").lstrip("#")}',
+        f'regular2={palette.get("color2", "#52b788").lstrip("#")}',
+        f'regular3={palette.get("color3", "#f4a261").lstrip("#")}',
+        f'regular4={palette.get("color4", "#457b9d").lstrip("#")}',
+        f'regular5={palette.get("color5", "#c77dff").lstrip("#")}',
+        f'regular6={palette.get("color6", "#48cae4").lstrip("#")}',
+        f'regular7={palette.get("color7", palette["fg_primary"]).lstrip("#")}',
+        f'bright0={palette.get("color8", palette["bg_tertiary"]).lstrip("#")}',
+        f'bright1={palette.get("color9", "#ff5c6a").lstrip("#")}',
+        f'bright2={palette.get("color10", "#74c69d").lstrip("#")}',
+        f'bright3={palette.get("color11", "#ffb703").lstrip("#")}',
+        f'bright4={palette.get("color12", "#68a3c7").lstrip("#")}',
+        f'bright5={palette.get("color13", "#d89eff").lstrip("#")}',
+        f'bright6={palette.get("color14", "#72ddf7").lstrip("#")}',
+        f'bright7={palette.get("color15", "#ffffff").lstrip("#")}',
+        f'selection-foreground={palette["fg_primary"].lstrip("#")}',
+        f'selection-background={palette["bg_tertiary"].lstrip("#")}',
+        f'urls={palette["accent"].lstrip("#")}',
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def render_foot_conf(fonts: dict[str, Any], general_shell: str | None = None) -> str:
+    """Render `foot/foot.ini`."""
+    lines = [
+        "# DETech Foot Terminal Configuration",
+        "include=detech-theme.ini",
+        "",
+        "[main]",
+        f"font={fonts['mono']}:size={fonts['size']}",
+        "pad=10x10",
+    ]
+    if general_shell:
+        lines.append(f"shell={general_shell}")
+    return "\n".join(lines) + "\n"
+
+
+def render_term_colors_sh(palette: dict[str, str]) -> str:
+    """Render POSIX shell script that emits OSC 4/10/11/12 escape sequences to set terminal colors."""
+    lines = [
+        "#!/bin/sh",
+        "# DETech Terminal Color Palette Sync (OSC 4/10/11/12 Escape Sequences)",
+        "# Applies theme text and ANSI colors dynamically to any running VT100 / Wayland terminal",
+        "[ -t 1 ] || return 0 2>/dev/null || exit 0",
+        "",
+        f"printf '\\033]10;{palette['fg_primary']}\\007'",
+        f"printf '\\033]11;{palette['bg_primary']}\\007'",
+        f"printf '\\033]12;{palette['accent']}\\007'",
+    ]
+    for idx in range(16):
+        key = f"color{idx}"
+        if key in palette:
+            lines.append(f"printf '\\033]4;{idx};{palette[key]}\\007'")
+    return "\n".join(lines) + "\n"
+
+
+def generate_terminal_and_shell_configs(
+    context: dict[str, Any],
+    palette: dict[str, str],
+    fonts: dict[str, Any],
+    config_root: Path,
+) -> list[Path]:
+    """Generate terminal themes (Kitty, Alacritty, Foot), Starship presets, Neofetch, and shell hooks."""
+    written: list[Path] = []
+    general_shell = context.get("config", {}).get("general", {}).get("shell", "zsh")
+
+    # 1. Kitty configs
+    kitty_dir = config_root / "kitty"
+    kitty_dir.mkdir(parents=True, exist_ok=True)
+
+    kitty_theme = kitty_dir / "detech-theme.conf"
+    kitty_theme.write_text(render_kitty_theme(palette), encoding="utf-8")
     written.append(kitty_theme)
 
     kitty_conf = kitty_dir / "kitty.conf"
-    general_shell = context.get("config", {}).get("general", {}).get("shell", "zsh")
     kitty_lines = [
         "# DETech Kitty Terminal Configuration",
         f"font_family      {fonts['mono']}",
@@ -410,7 +555,37 @@ def generate_terminal_and_shell_configs(
     kitty_conf.write_text("\n".join(kitty_lines) + "\n", encoding="utf-8")
     written.append(kitty_conf)
 
-    # 2. Pre-compile all 15 Starship prompt presets into `starship/presets/<id>.toml`
+    # 2. Alacritty configs
+    alacritty_dir = config_root / "alacritty"
+    alacritty_dir.mkdir(parents=True, exist_ok=True)
+    alacritty_theme = alacritty_dir / "detech-theme.toml"
+    alacritty_theme.write_text(render_alacritty_theme(palette), encoding="utf-8")
+    written.append(alacritty_theme)
+
+    alacritty_conf = alacritty_dir / "alacritty.toml"
+    alacritty_conf.write_text(render_alacritty_conf(fonts, general_shell), encoding="utf-8")
+    written.append(alacritty_conf)
+
+    # 3. Foot configs
+    foot_dir = config_root / "foot"
+    foot_dir.mkdir(parents=True, exist_ok=True)
+    foot_theme = foot_dir / "detech-theme.ini"
+    foot_theme.write_text(render_foot_theme(palette), encoding="utf-8")
+    written.append(foot_theme)
+
+    foot_conf = foot_dir / "foot.ini"
+    foot_conf.write_text(render_foot_conf(fonts, general_shell), encoding="utf-8")
+    written.append(foot_conf)
+
+    # 4. Dynamic Terminal Color Broadcaster (`detech/term-colors.sh`)
+    detech_dir = config_root / "detech"
+    detech_dir.mkdir(parents=True, exist_ok=True)
+    term_colors_path = detech_dir / "term-colors.sh"
+    term_colors_path.write_text(render_term_colors_sh(palette), encoding="utf-8")
+    term_colors_path.chmod(0o755)
+    written.append(term_colors_path)
+
+    # 5. Pre-compile all 15 Starship prompt presets into `starship/presets/<id>.toml`
     starship_presets_dir = config_root / "starship" / "presets"
     starship_presets_dir.mkdir(parents=True, exist_ok=True)
     for item in list_starship_prompts():
@@ -419,7 +594,7 @@ def generate_terminal_and_shell_configs(
         p_path.write_text(render_starship_toml(item, palette), encoding="utf-8")
         written.append(p_path)
 
-    # 3. Active `starship.toml`
+    # 6. Active `starship.toml`
     appearance = context.get("config", {}).get("appearance", {})
     preset_id = appearance.get("starship_preset", "tokyo-pill")
     active_spec = get_starship_prompt(preset_id)
@@ -428,15 +603,13 @@ def generate_terminal_and_shell_configs(
     starship_path.write_text(render_starship_toml(active_spec, palette), encoding="utf-8")
     written.append(starship_path)
 
-    # 4. Neofetch configuration (`neofetch/config.conf`) & Shell Startup hook (`detech/shell-init.sh`)
+    # 7. Neofetch configuration (`neofetch/config.conf`) & Shell Startup hook (`detech/shell-init.sh`)
     neofetch_dir = config_root / "neofetch"
     neofetch_dir.mkdir(parents=True, exist_ok=True)
     neofetch_conf_path = neofetch_dir / "config.conf"
     neofetch_conf_path.write_text(render_neofetch_conf(context, palette, fonts), encoding="utf-8")
     written.append(neofetch_conf_path)
 
-    detech_dir = config_root / "detech"
-    detech_dir.mkdir(parents=True, exist_ok=True)
     shell_init_path = detech_dir / "shell-init.sh"
     shell_init_path.write_text(render_shell_init_sh(context, config_root), encoding="utf-8")
     written.append(shell_init_path)

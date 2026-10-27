@@ -5,6 +5,7 @@ return {
     variant = "dark",
     gtk_theme = "Tokyonight-Dark",
     icon_theme = "TokyoNight-SE",
+    folder_color = "cyan",
     cursor_theme = "Bibata-Modern-Ice",
     kvantum_theme = "KvTokyoNight",
     default_waybar = "cyber-angled",

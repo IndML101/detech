@@ -791,6 +791,16 @@ def generate_hypr_configs(
     cursor_theme = str(appearance.get("cursor_theme", "Bibata-Modern-Ice"))
     cursor_size = str(appearance.get("cursor_size", 24))
 
+    tp = inp.get("touchpad") if isinstance(inp.get("touchpad"), dict) else {}
+    tp_natural_scroll = tp.get("natural_scroll", inp.get("touchpad_natural_scroll", True))
+    tp_tap_to_click = tp.get("tap_to_click", inp.get("touchpad_tap_to_click", True))
+    tp_drag_lock = tp.get("drag_lock", inp.get("touchpad_drag_lock", False))
+    tp_tap_and_drag = tp.get("tap_and_drag", inp.get("touchpad_tap_and_drag", True))
+    tp_middle_emul = tp.get("middle_button_emulation", inp.get("touchpad_middle_button_emulation", False))
+    tp_clickfinger = tp.get("clickfinger_behavior", inp.get("touchpad_clickfinger_behavior", False))
+    tp_disable_typing = tp.get("disable_while_typing", inp.get("touchpad_disable_while_typing", True))
+    tp_scroll_factor = tp.get("scroll_factor", inp.get("touchpad_scroll_factor", 1.0))
+
     hl_lua_lines = [
         "-- DETech Compiled Hyprland Lua Configuration for FreeBSD (Hyprland 0.56/0.57+)",
         'local colors = require("detech-colors")',
@@ -804,6 +814,7 @@ def generate_hypr_configs(
         'hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")',
         f'hl.env("XCURSOR_THEME", {_lua_str(cursor_theme)})',
         f'hl.env("XCURSOR_SIZE", {_lua_str(cursor_size)})',
+        f'hl.env("HYPRCURSOR_THEME", {_lua_str(cursor_theme)})',
         f'hl.env("HYPRCURSOR_SIZE", {_lua_str(cursor_size)})',
         "",
         "-- Monitors",
@@ -871,8 +882,18 @@ def generate_hypr_configs(
             f"        follow_mouse = {inp.get('follow_mouse', 1)},",
             f"        sensitivity = {inp.get('sensitivity', 0.0)},",
             "        touchpad = {",
-            f"            natural_scroll = {'true' if inp.get('touchpad_natural_scroll', True) else 'false'},",
+            f"            natural_scroll = {'true' if tp_natural_scroll else 'false'},",
+            f"            tap_to_click = {'true' if tp_tap_to_click else 'false'},",
+            f"            drag_lock = {'true' if tp_drag_lock else 'false'},",
+            f"            tap_and_drag = {'true' if tp_tap_and_drag else 'false'},",
+            f"            disable_while_typing = {'true' if tp_disable_typing else 'false'},",
+            f"            scroll_factor = {tp_scroll_factor},",
             "        },",
+            "    },",
+            "    cursor = {",
+            "        no_hardware_cursors = false,",
+            "        enable_hyprcursor = true,",
+            "        sync_gsettings_theme = true,",
             "    },",
             "    dwindle = {",
             "        preserve_split = true,",
@@ -938,6 +959,8 @@ def generate_hypr_configs(
         "env = QT_QPA_PLATFORMTHEME,qt6ct",
         f"env = XCURSOR_THEME,{cursor_theme}",
         f"env = XCURSOR_SIZE,{cursor_size}",
+        f"env = HYPRCURSOR_THEME,{cursor_theme}",
+        f"env = HYPRCURSOR_SIZE,{cursor_size}",
         "",
         "# Monitors",
     ]
@@ -950,6 +973,9 @@ def generate_hypr_configs(
     if not any("dbus-update-activation-environment" in str(c) for c in autostart):
         hl_lines.append("exec-once = dbus-update-activation-environment --all")
         hl_lines.append("exec-once = gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'")
+        hl_lines.append(f"exec-once = hyprctl setcursor {cursor_theme} {cursor_size}")
+        hl_lines.append(f"exec-once = gsettings set org.gnome.desktop.interface cursor-theme '{cursor_theme}'")
+        hl_lines.append(f"exec-once = gsettings set org.gnome.desktop.interface cursor-size {cursor_size}")
     for cmd in autostart:
         hl_lines.append(f"exec-once = {_resolve_autostart_cmd(cmd)}")
 
@@ -989,9 +1015,24 @@ def generate_hypr_configs(
             f"    kb_variant = {inp.get('kb_variant', '')}",
             f"    kb_options = {inp.get('kb_options', '')}",
             f"    follow_mouse = {inp.get('follow_mouse', 1)}",
+            f"    sensitivity = {inp.get('sensitivity', 0.0)}",
             "    touchpad {",
-            f"        natural_scroll = {'true' if inp.get('touchpad_natural_scroll', True) else 'false'}",
+            f"        natural_scroll = {'true' if tp_natural_scroll else 'false'}",
+            f"        tap-to-click = {'true' if tp_tap_to_click else 'false'}",
+            f"        drag_lock = {'true' if tp_drag_lock else 'false'}",
+            f"        tap-and-drag = {'true' if tp_tap_and_drag else 'false'}",
+            f"        middle_button_emulation = {'true' if tp_middle_emul else 'false'}",
+            f"        clickfinger_behavior = {'true' if tp_clickfinger else 'false'}",
+            f"        disable_while_typing = {'true' if tp_disable_typing else 'false'}",
+            f"        scroll_factor = {tp_scroll_factor}",
             "    }",
+            "}",
+            "",
+            "cursor {",
+            "    no_hardware_cursors = false",
+            "    enable_hyprcursor = true",
+            "    sync_gsettings_theme = true",
+            "    inactive_timeout = 0",
             "}",
             "",
             "dwindle {",

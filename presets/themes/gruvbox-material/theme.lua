@@ -5,6 +5,7 @@ return {
     variant = "dark",
     gtk_theme = "Gruvbox-Material-Dark",
     icon_theme = "Gruvbox-Plus-Dark",
+    folder_color = "orange",
     cursor_theme = "Bibata-Modern-Classic",
     kvantum_theme = "DETech",
     default_waybar = "retro-box",

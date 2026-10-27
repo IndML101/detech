@@ -66,8 +66,9 @@ return {
         starship_preset = "tokyo-pill",
         hyprlock_layout = "bsd-crimson-guard",
         icon_theme = "Papirus-Dark",
-        cursor_theme = "Bibata-Modern-Ice",
-        cursor_size = 24,
+        folder_color = "auto", -- "auto" (theme matched), or "carmine", "red", "cyan", "green", "violet", "orange", "teal"
+        cursor_theme = "Bibata-Modern-Ice", -- "Bibata-Modern-Ice", "Bibata-Modern-Classic", "Catppuccin-Mocha-Dark-Cursors", "Nordzy-cursors", etc.
+        cursor_size = 24, -- Trackpad recommended sizes: 24 (Standard), 28 (Medium), 32 (Large), 36 (XL), 48 (Ultra/4K)
         gaps_in = 6,
         gaps_out = 12,
         border_size = 2,
@@ -85,8 +86,17 @@ return {
         kb_variant = "",
         kb_options = "",
         follow_mouse = 1,
-        touchpad_natural_scroll = true,
         sensitivity = 0.0,
+        touchpad = {
+            natural_scroll = true,
+            tap_to_click = true,
+            drag_lock = false,
+            tap_and_drag = true,
+            middle_button_emulation = false,
+            clickfinger_behavior = false,
+            disable_while_typing = true,
+            scroll_factor = 1.0,
+        },
     },
     autostart = {
         "waybar",
