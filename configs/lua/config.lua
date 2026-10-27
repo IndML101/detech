@@ -4,6 +4,7 @@
 return {
     general = {
         terminal = "kitty",
+        shell = "zsh",
         file_manager = "thunar",
         browser = "firefox",
         editor = "nvim",

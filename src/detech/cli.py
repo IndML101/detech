@@ -239,6 +239,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             "font_sans": fonts["sans"],
             "font_size": fonts["size"],
             "accent_color": palette.get("accent"),
+            "terminal": ctx.get("config", {}).get("general", {}).get("terminal", "kitty"),
+            "shell": ctx.get("config", {}).get("general", {}).get("shell", "zsh"),
             "login_manager": ctx.get("freebsd", {}).get("login_manager", {}).get("manager", "ly"),
             "login_animation": ctx.get("freebsd", {}).get("login_manager", {}).get("animation", "matrix"),
         }

@@ -41,11 +41,14 @@ Users configure their entire desktop through clean, declarative **Lua configurat
 - **Nerd Fonts Manager & Installer**:
   - Built-in catalog of 16+ Nerd Fonts with `fc-list` discovery and one-click downloader/installer into `~/.local/share/fonts/NerdFonts/`.
   - Updates font family and sizes simultaneously across Kitty, Waybar, Rofi, Hyprlock, Dunst, GTK, and Qt.
-- **Neofetch Terminal System Info & Shell Hook**:
+- **Zsh Default Shell, Native Plugins & Starship / Neofetch Terminal Hook**:
+  - Automatically installs and configures **Zsh** as the default login shell on FreeBSD (`/usr/local/bin/zsh`).
+  - Out-of-the-box native Fish-like plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`, and `zsh-completions`) without needing Oh My Zsh.
+  - Pre-seeds `~/.zshrc` with the DETech shell startup hook (`detech/shell-init.sh`), suppressing first-time configuration wizards and instantly enabling Starship prompts, tab autocompletion, autosuggestions, syntax highlighting, and Beastie Neofetch.
   - Themed FreeBSD `neofetch/config.conf` displaying FreeBSD Beastie ASCII, kernel, uptime, ZFS root pool, active DETech theme, icon theme, presets, and Nerd Font.
   - Interactive shell startup hook (`detech/shell-init.sh`) and `detech fetch` CLI command.
 - **Declarative Lua Configuration**:
-  - Configure general settings, terminal info, fonts, appearance, keyboard shortcuts, monitors, window rules, Hyprland plugins, widgets, and FreeBSD hardware backends in Lua (`~/.config/detech/*.lua`).
+  - Configure general settings (terminal, shell, browser, editor), terminal info, fonts, appearance, keyboard shortcuts, monitors, window rules, Hyprland plugins, widgets, and FreeBSD hardware backends in Lua (`~/.config/detech/*.lua`).
 
 ---
 
@@ -55,9 +58,17 @@ Users configure their entire desktop through clean, declarative **Lua configurat
 
 Run the idempotent FreeBSD setup script:
 ```sh
-# Installs packages (hyprland, waybar, rofi, kitty, starship, ly, etc.) and seeds ~/.config/detech/
+# Installs packages (hyprland, waybar, rofi, kitty, zsh, plugins, starship, ly, etc.),
+# sets Zsh as default login shell, seeds ~/.config/detech/ and compiles initial configs
 sh scripts/install-freebsd.sh
 ```
+The installer handles:
+1. Installing all required packages via `pkg` (compositor, Waybar, Rofi, Kitty, Zsh, `zsh-autosuggestions`, `zsh-syntax-highlighting`, `zsh-completions`, Starship, Ly, etc.).
+2. Enabling and starting `dbus` and `seatd` services.
+3. Setting **Zsh** as your default login shell via FreeBSD `pw usermod` (ensuring `/usr/local/bin/zsh` is in `/etc/shells`).
+4. Seeding declarative Lua configs into `~/.config/detech/`.
+5. Pre-initializing `~/.zshrc` with the automated Starship, autocompletion, autosuggestion, syntax highlighting, and Neofetch shell hooks.
+6. Compiling configs and installing the `detech` launcher script into `~/.local/bin/detech`.
 
 ### 2. Configure Ly Login Manager (Optional but Recommended)
 

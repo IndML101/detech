@@ -20,14 +20,14 @@ echo "========================================================"
 
 # 1. Verify ly package
 if ! pkg info -e ly >/dev/null 2>&1; then
-    echo "[1/5] Installing ly package via pkg..."
+    echo "[1/6] Installing ly package via pkg..."
     pkg install -y ly
 else
-    echo "[1/5] ly package is already installed."
+    echo "[1/6] ly package is already installed."
 fi
 
 # 2. Configure /etc/gettytab with ly_wrapper
-echo "[2/5] Updating /etc/gettytab to use ly_wrapper..."
+echo "[2/6] Updating /etc/gettytab to use ly_wrapper..."
 if grep -q ":lo=/usr/local/bin/ly_wrapper:" /etc/gettytab 2>/dev/null && ! grep -q "Ly:\\\\n" /etc/gettytab 2>/dev/null; then
     echo "  -> /etc/gettytab already contains properly formatted ly_wrapper entry."
 else
@@ -47,7 +47,7 @@ EOF
 fi
 
 # 3. Configure /etc/ttys for ttyv1
-echo "[3/5] Verifying /etc/ttys configuration..."
+echo "[3/6] Verifying /etc/ttys configuration..."
 if grep -E "^ttyv1[[:space:]]+\"/usr/libexec/getty Ly\"" /etc/ttys >/dev/null 2>&1; then
     echo "  -> ttyv1 is already enabled with getty Ly."
 else
@@ -56,7 +56,7 @@ else
 fi
 
 # 4. Install DETech Wayland Session Desktop Entry
-echo "[4/5] Installing DETech session desktop entry..."
+echo "[4/6] Installing DETech session desktop entry..."
 mkdir -p /usr/local/share/wayland-sessions
 cat > /usr/local/share/wayland-sessions/detech.desktop <<'EOF'
 [Desktop Entry]
@@ -71,7 +71,7 @@ chmod 644 /usr/local/share/wayland-sessions/detech.desktop
 echo "  -> Installed /usr/local/share/wayland-sessions/detech.desktop"
 
 # 5. Link Ly configuration to DETech generated config
-echo "[5/5] Symlinking Ly configuration for live theme syncing..."
+echo "[5/6] Symlinking Ly configuration for live theme syncing..."
 mkdir -p /usr/local/etc/ly
 if [ -f "$CONFIG_FILE" ]; then
     ln -sf "$CONFIG_FILE" /usr/local/etc/ly/config.ini
@@ -79,6 +79,25 @@ if [ -f "$CONFIG_FILE" ]; then
     echo "  -> Symlinked /usr/local/etc/ly/config.ini -> $CONFIG_FILE"
 else
     echo "  -> Note: $CONFIG_FILE not found yet. Run 'detech apply' as $TARGET_USER to compile it."
+fi
+
+# 6. Verify and set default login shell to Zsh for target user
+echo "[6/6] Verifying default login shell (Zsh)..."
+ZSH_BIN=""
+if [ -x "/usr/local/bin/zsh" ]; then
+    ZSH_BIN="/usr/local/bin/zsh"
+elif command -v zsh >/dev/null 2>&1; then
+    ZSH_BIN="$(command -v zsh)"
+fi
+if [ -n "$ZSH_BIN" ]; then
+    CURRENT_SHELL="$(getent passwd "$TARGET_USER" 2>/dev/null | cut -d: -f7 || true)"
+    if [ "$CURRENT_SHELL" != "$ZSH_BIN" ]; then
+        echo "  -> Setting default login shell for '$TARGET_USER' to $ZSH_BIN..."
+        pw usermod "$TARGET_USER" -s "$ZSH_BIN" 2>/dev/null || chsh -s "$ZSH_BIN" "$TARGET_USER" 2>/dev/null || true
+        echo "  -> Login shell updated to $ZSH_BIN"
+    else
+        echo "  -> User '$TARGET_USER' login shell is already $ZSH_BIN."
+    fi
 fi
 
 echo ""

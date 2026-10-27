@@ -136,8 +136,8 @@ DETech/
 │   ├── hyprplugins/                # 6 Hyprland plugin presets
 │   └── hyprlock/                   # 14 Screen lock layouts (10 theme-matched + 4 classic)
 ├── scripts/
-│   ├── install-freebsd.sh          # FreeBSD pkg, seatd/dbus & user configs installer
-│   └── setup-ly.sh                 # Ly TUI login manager installer & FreeBSD console config
+│   ├── install-freebsd.sh          # FreeBSD pkg, Zsh default shell, seatd/dbus & user configs installer
+│   └── setup-ly.sh                 # Ly TUI login manager installer, Zsh shell check & console config
 ├── src/
 │   └── detech/
 │       ├── __init__.py
@@ -175,7 +175,7 @@ DETech/
 - `hyprland.py`: Generates `hyprland.conf`, `detech-colors.conf`, `detech-keybinds.conf`, `detech-plugins.conf`, `hyprlock.conf`, `hypridle.conf`, and `hyprpaper.conf` with Hyprland 0.56+ syntax.
 - `waybar.py`: Compiles 15 distinct Waybar layouts and dynamic CSS stylesheets incorporating all FreeBSD widgets and the system tray.
 - `rofi.py`: Generates `colors.rasi`, `fonts.rasi`, `config.rasi`, and 15 app drawer layouts with chunky list items and minimalist separators.
-- `terminal_shell.py`: Emits `kitty.conf`, `detech-theme.conf`, 15 Starship prompt presets (`starship.toml`), themed Neofetch configuration, and `shell-init.sh`.
+- `terminal_shell.py`: Emits `kitty.conf` (configured with Zsh as default shell), `detech-theme.conf`, 15 Starship prompt presets (`starship.toml`), themed Neofetch configuration, and `shell-init.sh` (integrating Zsh completions, autosuggestions, and syntax highlighting).
 - `gtk_qt_dunst.py`: Emits GTK-2/3/4 settings, Qt5ct/Qt6ct color schemes, Kvantum SVG themes, and `dunstrc`.
 - `ly.py`: Emits themed Ly `config.ini` files with 32-bit hex colors, matrix/doom animations, and big clock styling.
 

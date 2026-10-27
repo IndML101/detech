@@ -150,10 +150,48 @@ def render_shell_init_sh(context: dict[str, Any], config_root: Path) -> str:
         "                fastfetch",
         "            fi",
         "        fi",
-        "        if command -v starship >/dev/null 2>&1; then",
-        '            if [ -n "${ZSH_VERSION:-}" ]; then',
+        '        if [ -n "${ZSH_VERSION:-}" ]; then',
+        "            # Zsh Autocompletion & Additional Definitions",
+        '            if [ -d "/usr/local/share/zsh-completions" ]; then',
+        '                fpath=(/usr/local/share/zsh-completions $fpath)',
+        '            elif [ -d "/usr/share/zsh/site-functions" ]; then',
+        '                fpath=(/usr/share/zsh/site-functions $fpath)',
+        "            fi",
+        '            autoload -Uz compinit && compinit -C 2>/dev/null || autoload -Uz compinit && compinit',
+        "",
+        "            # Zsh Autosuggestions",
+        "            for _asugg in \\",
+        '                "/usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \\',
+        '                "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \\',
+        '                "/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" \\',
+        '                "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" \\',
+        '                "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"; do',
+        '                if [ -f "$_asugg" ]; then',
+        '                    . "$_asugg"',
+        "                    break",
+        "                fi",
+        "            done",
+        "            unset _asugg",
+        "",
+        "            # Zsh Syntax Highlighting (must be loaded after completions)",
+        "            for _shl in \\",
+        '                "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \\',
+        '                "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \\',
+        '                "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \\',
+        '                "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \\',
+        '                "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"; do',
+        '                if [ -f "$_shl" ]; then',
+        '                    . "$_shl"',
+        "                    break",
+        "                fi",
+        "            done",
+        "            unset _shl",
+        "",
+        "            if command -v starship >/dev/null 2>&1; then",
         '                eval "$(starship init zsh)"',
-        '            elif [ -n "${BASH_VERSION:-}" ]; then',
+        "            fi",
+        '        elif [ -n "${BASH_VERSION:-}" ]; then',
+        "            if command -v starship >/dev/null 2>&1; then",
         '                eval "$(starship init bash)"',
         "            fi",
         "        fi",
@@ -349,6 +387,7 @@ def generate_terminal_and_shell_configs(
     written.append(kitty_theme)
 
     kitty_conf = kitty_dir / "kitty.conf"
+    general_shell = context.get("config", {}).get("general", {}).get("shell", "zsh")
     kitty_lines = [
         "# DETech Kitty Terminal Configuration",
         f"font_family      {fonts['mono']}",
@@ -361,9 +400,13 @@ def generate_terminal_and_shell_configs(
         "enable_audio_bell no",
         "background_opacity 0.92",
         "allow_remote_control yes",
+    ]
+    if general_shell:
+        kitty_lines.append(f"shell            {general_shell}")
+    kitty_lines.extend([
         "symbol_map U+23FB-U+23FE,U+2B58,U+E200-U+E2A9,U+E0A0-U+E0A3,U+E0B0-U+E0BF,U+E0C0-U+E0C8,U+E0CC-U+E0CF,U+E0D0-U+E0D2,U+E0D4,U+E700-U+E7C5,U+F000-U+F2E0,U+2665,U+26A1,U+F400-U+F4A9,U+F27C,U+F300-U+F372,U+F0001-U+F1AF0 Symbols Nerd Font Mono",
         "include detech-theme.conf",
-    ]
+    ])
     kitty_conf.write_text("\n".join(kitty_lines) + "\n", encoding="utf-8")
     written.append(kitty_conf)
 

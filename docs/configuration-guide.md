@@ -21,6 +21,7 @@ The primary configuration file for general preferences, fonts, appearance, and d
 return {
     general = {
         terminal = "kitty",            -- Default terminal emulator
+        shell = "zsh",                 -- Default interactive shell ("zsh", "bash", "sh")
         file_manager = "thunar",        -- Default graphical file manager
         browser = "firefox",           -- Default web browser
         editor = "nvim",               -- Default text/code editor

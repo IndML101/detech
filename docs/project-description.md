@@ -47,7 +47,8 @@ The project provides a complete, keyboard-centric, modular desktop environment b
 - **Nerd Fonts Manager**:
   - Curated catalog of 16+ Nerd Fonts with `fc-list` discovery and one-click installer.
   - Instant propagation across Kitty, Waybar, Rofi, Hyprlock, Dunst, GTK, and Qt.
-- **Terminal System Info & Shell Hook**:
+- **Zsh Default Shell & Terminal Hook**:
+  - Sets Zsh as the default login shell on FreeBSD (`/usr/local/bin/zsh`), pre-seeding `~/.zshrc` with interactive hooks.
   - Themed Neofetch configuration (`neofetch/config.conf`) featuring FreeBSD Beastie ASCII art, ZFS root pool status, and active DETech theme details.
   - Shell startup hook (`detech/shell-init.sh`) and `detech fetch` CLI command.
 - **Waybar Widget Suite & System Tray**:

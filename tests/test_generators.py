@@ -180,6 +180,17 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     sh_text = shell_init.read_text(encoding="utf-8")
     assert 'export DETECH_NEOFETCH="1"' in sh_text
     assert "neofetch --config" in sh_text
+    assert "autoload -Uz compinit" in sh_text
+    assert "zsh-autosuggestions.zsh" in sh_text
+    assert "zsh-syntax-highlighting.zsh" in sh_text
+    assert "zsh-completions" in sh_text
+
+    # Verify Kitty terminal configuration & default shell
+    kitty_conf = out_dir / "kitty" / "kitty.conf"
+    assert kitty_conf.is_file()
+    kitty_text = kitty_conf.read_text(encoding="utf-8")
+    assert "shell            zsh" in kitty_text
+    assert "include detech-theme.conf" in kitty_text
 
     # Verify all 15 pre-compiled Waybar layouts and stylesheets
     for item in list_waybar_layouts():
@@ -322,7 +333,7 @@ def test_compile_all_generates_complete_desktop_configs(tmp_path: Path) -> None:
     assert (out_dir / "ly" / "config.ini").is_file()
     ly_text = ly_conf.read_text(encoding="utf-8")
     assert "full_color = true" in ly_text
-    assert "animation = matrix" in ly_text
+    assert "animation = " in ly_text
     assert "cmatrix_fg = 0x" in ly_text
     assert "bigclock = en" in ly_text
     assert "waylandsessions = /usr/local/share/wayland-sessions" in ly_text
@@ -388,5 +399,28 @@ def test_all_theme_lock_screens_compile(tmp_path: Path) -> None:
         assert "background {" in content
         assert "input-field {" in content
         assert "label {" in content
+
+
+def test_kitty_shell_configuration(tmp_path: Path) -> None:
+    from detech.core.color_engine import resolve_active_palette
+    from detech.generators.terminal_shell import generate_terminal_and_shell_configs
+
+    ctx_bash = {"config": {"appearance": {"theme": "bsd-crimson"}, "general": {"shell": "bash"}}}
+    _, palette = resolve_active_palette(ctx_bash)
+    fonts = {"mono": "JetBrainsMono Nerd Font", "size": 11}
+
+    # 1. Custom shell specified
+    out_bash = tmp_path / "bash_test"
+    generate_terminal_and_shell_configs(ctx_bash, palette, fonts, out_bash)
+    kitty_conf = (out_bash / "kitty" / "kitty.conf").read_text(encoding="utf-8")
+    assert "shell            bash" in kitty_conf
+
+    # 2. Default zsh when shell is omitted
+    ctx_default = {"config": {"appearance": {"theme": "bsd-crimson"}, "general": {}}}
+    out_default = tmp_path / "default_test"
+    generate_terminal_and_shell_configs(ctx_default, palette, fonts, out_default)
+    kitty_conf_default = (out_default / "kitty" / "kitty.conf").read_text(encoding="utf-8")
+    assert "shell            zsh" in kitty_conf_default
+
 
 

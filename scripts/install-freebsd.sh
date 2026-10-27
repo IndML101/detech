@@ -25,6 +25,10 @@ FREEBSD_PACKAGES="
     waybar
     rofi
     kitty
+    zsh
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    zsh-completions
     starship
     neofetch
     playerctl
@@ -69,7 +73,7 @@ run_cmd() {
 }
 
 if [ "$OS_NAME" = "FreeBSD" ]; then
-    echo "[1/4] Checking and installing FreeBSD packages via pkg..."
+    echo "[1/5] Checking and installing FreeBSD packages via pkg..."
     MISSING_PACKAGES=""
     for pkg_name in $FREEBSD_PACKAGES; do
         if [ "$DRY_RUN" -eq 1 ] || ! pkg info -e "$pkg_name" >/dev/null 2>&1; then
@@ -83,7 +87,7 @@ if [ "$OS_NAME" = "FreeBSD" ]; then
         echo "  -> All required FreeBSD packages are already installed."
     fi
 
-    echo "[2/4] Verifying FreeBSD services & Ly login manager..."
+    echo "[2/5] Verifying FreeBSD services & Ly login manager..."
     for svc in dbus seatd; do
         if ! sysrc -n "${svc}_enable" 2>/dev/null | grep -qi "YES"; then
             run_cmd "$PRIV_CMD" sysrc "${svc}_enable=YES"
@@ -127,11 +131,11 @@ Keywords=tiling;wayland;compositor;detech;hyprland;
 EOF"
     echo "  -> Installed /usr/local/share/wayland-sessions/detech.desktop"
 else
-    echo "[1/4] Skipping FreeBSD pkg installation on non-FreeBSD host."
-    echo "[2/4] Skipping FreeBSD rc.conf service check on non-FreeBSD host."
+    echo "[1/5] Skipping FreeBSD pkg installation on non-FreeBSD host."
+    echo "[2/5] Skipping FreeBSD rc.conf service check on non-FreeBSD host."
 fi
 
-echo "[3/4] Seeding user declarative Lua configs into $CONFIG_DEST..."
+echo "[3/5] Seeding user declarative Lua configs into $CONFIG_DEST..."
 run_cmd mkdir -p "$CONFIG_DEST"
 for lua_file in "$REPO_ROOT"/configs/lua/*.lua; do
     base_name="$(basename "$lua_file")"
@@ -139,7 +143,7 @@ for lua_file in "$REPO_ROOT"/configs/lua/*.lua; do
     echo "  -> Installed $CONFIG_DEST/$base_name"
 done
 
-echo "[4/4] Installing DETech Python 3.12 package and compiling initial configs..."
+echo "[4/5] Installing DETech Python 3.12 package and compiling initial configs..."
 if [ "$DRY_RUN" -eq 0 ]; then
     if command -v python3.12 >/dev/null 2>&1; then
         PYTHON_BIN="python3.12"
@@ -170,17 +174,83 @@ EOF
             echo "  -> Symlinked /usr/local/etc/ly/config.ini to $CONFIG_DEST/generated/ly/config.ini"
         fi
     fi
-    SHELL_INIT_LINE='[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh" ] && . "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh"'
-    for rc_file in "$HOME/.profile" "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.shrc"; do
-        if [ -f "$rc_file" ] && ! grep -q "detech/shell-init.sh" "$rc_file" 2>/dev/null; then
-            printf "\n# DETech Neofetch & Starship Shell Hook\n%s\n" "$SHELL_INIT_LINE" >> "$rc_file"
-            echo "  -> Added DETech shell hook (Neofetch + Starship) to $rc_file"
-        fi
-    done
 else
     echo "[dry-run] $PYTHON_BIN -m pip install --user -e $REPO_ROOT"
     echo "[dry-run] PYTHONPATH=$REPO_ROOT/src $PYTHON_BIN -m detech.cli apply --no-reload"
 fi
+
+echo "[5/5] Configuring default shell (Zsh) and interactive shell startup hook..."
+CURRENT_USER="${SUDO_USER:-${USER:-$(whoami)}}"
+USER_HOME="${HOME:-$(getent passwd "$CURRENT_USER" 2>/dev/null | cut -d: -f6)}"
+
+ZSH_BIN=""
+if [ -x "/usr/local/bin/zsh" ]; then
+    ZSH_BIN="/usr/local/bin/zsh"
+elif command -v zsh >/dev/null 2>&1; then
+    ZSH_BIN="$(command -v zsh)"
+elif [ -x "/bin/zsh" ]; then
+    ZSH_BIN="/bin/zsh"
+elif [ -x "/usr/bin/zsh" ]; then
+    ZSH_BIN="/usr/bin/zsh"
+fi
+
+if [ -n "$ZSH_BIN" ]; then
+    # Ensure Zsh is listed in /etc/shells
+    if [ -f /etc/shells ] && ! grep -qFx "$ZSH_BIN" /etc/shells 2>/dev/null; then
+        echo "  -> Adding $ZSH_BIN to /etc/shells..."
+        run_cmd "$PRIV_CMD" sh -c "echo '$ZSH_BIN' >> /etc/shells"
+    fi
+
+    # Set default shell for target user if not already zsh
+    CURRENT_SHELL="$(getent passwd "$CURRENT_USER" 2>/dev/null | cut -d: -f7 || true)"
+    if [ -z "$CURRENT_SHELL" ] && [ -f /etc/passwd ]; then
+        CURRENT_SHELL="$(grep -E "^${CURRENT_USER}:" /etc/passwd 2>/dev/null | cut -d: -f7 || true)"
+    fi
+
+    if [ "$CURRENT_SHELL" != "$ZSH_BIN" ]; then
+        echo "  -> Setting default shell to $ZSH_BIN for user '$CURRENT_USER'..."
+        if [ "$OS_NAME" = "FreeBSD" ] && command -v pw >/dev/null 2>&1; then
+            run_cmd "$PRIV_CMD" pw usermod "$CURRENT_USER" -s "$ZSH_BIN"
+        elif command -v chsh >/dev/null 2>&1; then
+            run_cmd chsh -s "$ZSH_BIN" "$CURRENT_USER" 2>/dev/null || run_cmd "$PRIV_CMD" chsh -s "$ZSH_BIN" "$CURRENT_USER"
+        elif command -v usermod >/dev/null 2>&1; then
+            run_cmd "$PRIV_CMD" usermod -s "$ZSH_BIN" "$CURRENT_USER"
+        fi
+        echo "  -> Default login shell successfully updated to $ZSH_BIN."
+    else
+        echo "  -> Default shell for '$CURRENT_USER' is already $ZSH_BIN."
+    fi
+else
+    echo "  [!] Notice: Zsh binary not found. Please verify zsh package installation."
+fi
+
+# Ensure ~/.zshrc exists (prevents first-time zsh-newuser-install wizard from blocking startup)
+SHELL_INIT_LINE='[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh" ] && . "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh"'
+ZSHRC="$USER_HOME/.zshrc"
+if [ ! -f "$ZSHRC" ]; then
+    echo "  -> Initializing $ZSHRC with DETech Neofetch + Starship hook..."
+    if [ "$DRY_RUN" -eq 1 ]; then
+        echo "[dry-run] create $ZSHRC with DETech shell hook"
+    else
+        cat > "$ZSHRC" <<'EOF'
+# DETech Interactive Shell Configuration (Zsh)
+# Initializes Starship prompt, autocompletions, autosuggestions, syntax highlighting, and Neofetch
+[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh" ] && . "${XDG_CONFIG_HOME:-$HOME/.config}/detech/shell-init.sh"
+EOF
+    fi
+fi
+
+# Ensure DETech shell hook is present across shell rc files
+for rc_file in "$USER_HOME/.zshrc" "$USER_HOME/.bashrc" "$USER_HOME/.profile" "$USER_HOME/.shrc"; do
+    if [ -f "$rc_file" ] && ! grep -q "detech/shell-init.sh" "$rc_file" 2>/dev/null; then
+        if [ "$DRY_RUN" -eq 1 ]; then
+            echo "[dry-run] append DETech shell hook to $rc_file"
+        else
+            printf "\n# DETech Neofetch & Starship Shell Hook\n%s\n" "$SHELL_INIT_LINE" >> "$rc_file"
+            echo "  -> Added DETech shell hook (Neofetch + Starship) to $rc_file"
+        fi
+    fi
+done
 
 echo ""
 echo "✓ DETech installation complete! Start Hyprland or run 'detech status'."

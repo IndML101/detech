@@ -7,7 +7,7 @@ return {
     login_manager = {
         manager = "ly", -- "ly" or "none"
         enable = true,
-        animation = "colormix", -- "matrix", "doom", "colormix", "gameoflife", "none"
+        animation = "none", -- "matrix", "doom", "colormix", "gameoflife", "none"
         animation_frame_delay = 5,
         animation_timeout_sec = 0,
         bigclock = "en", -- "en", "none", "fa"
